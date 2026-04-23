@@ -18,3 +18,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+// ici c'est un commentaire pour tester le commit et le push sur github
