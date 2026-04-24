@@ -1,0 +1,66 @@
+[
+  {
+    "name": {
+      "en": "Fin Sword",
+      "fr": "Épée de Finn"
+    },
+    "price": "100G",
+    "image": "finn_sword"
+  },
+  {
+    "name": {
+      "en": "Ice Crown",
+      "fr": "Couronne de glace"
+    },
+    "price": "350G",
+    "image": "icecrown"
+  },
+  {
+    "name": {
+      "en": "Marceline Guitar",
+      "fr": "Guitare de Marceline"
+    },
+    "price": "80G",
+    "image": "marceline_guitar"
+  },
+  {
+    "name": {
+      "en": "Billy Sword",
+      "fr": "Épée de Billy"
+    },
+    "price": "50G",
+    "image": "billy_sword"
+  },
+  {
+    "name": {
+      "en": "Jake's Sandwich",
+      "fr": "Sandwich de Jake"
+    },
+    "price": "30G",
+    "image": "jakes_sandwich"
+  },
+  {
+    "name": {
+      "en": "Thumb Armor",
+      "fr": "Armure de pouce"
+    },
+    "price": "40G",
+    "image": "thumb_armor"
+  },
+  {
+    "name": {
+      "en": "Enchiridion",
+      "fr": "Enchiridion"
+    },
+    "price": "200G",
+    "image": "enchiridion"
+  },
+  {
+    "name": {
+      "en": "Demon Blood Sword",
+      "fr": "Épée de sang démoniaque"
+    },
+    "price": "500G",
+    "image": "demon_blood_sword"
+  }
+]
