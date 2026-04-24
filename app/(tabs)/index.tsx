@@ -46,10 +46,11 @@ export default function Index() {
     ];
   }, [animationKey]);
 
-  useEffect(() => {
-    musicPlayer.loop = true;
-    musicPlayer.play();
-  }, []);
+function startMusic() {
+  musicPlayer.loop = true;
+  musicPlayer.volume = 0.5;
+  musicPlayer.play();
+}
 
   useEffect(() => {
     allBubbles.forEach((bubble) => bubble.setValue(0));
@@ -98,6 +99,7 @@ export default function Index() {
       style={styles.background}
       imageStyle={styles.backgroundImage}
     >
+      
       <Pressable style={styles.languageButton} onPress={changeLanguage}>
         <Text style={styles.languageButtonText}>
           {language === "en" ? "FR" : "EN"}
@@ -135,6 +137,9 @@ export default function Index() {
             />
           </Pressable>
         </Animated.View>
+        <Pressable style={styles.musicButton} onPress={startMusic}>
+  <Text style={styles.musicButtonText}>♪ Music</Text>
+</Pressable>
       </View>
 
       <View style={styles.grid}>
@@ -312,4 +317,21 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "black",
   },
+  musicButton: {
+  position: "absolute",
+  top: 15,
+  right: 70,
+  zIndex: 10,
+  backgroundColor: "white",
+  borderWidth: 2,
+  borderColor: "black",
+  borderRadius: 20,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+},
+
+musicButtonText: {
+  fontSize: 14,
+  fontWeight: "900",
+},
 });
