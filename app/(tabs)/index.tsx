@@ -5,8 +5,10 @@ import {
   Image,
   ImageBackground,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -32,6 +34,9 @@ export default function Index() {
   const [language, setLanguage] = useState<Language>("en");
   const [animationKey, setAnimationKey] = useState(0);
 
+  const { width } = useWindowDimensions();
+  const isMobile = width < 700;
+
   const musicPlayer = useAudioPlayer(music);
 
   const randomQuote = useMemo(() => {
@@ -41,16 +46,16 @@ export default function Index() {
 
   const allBubbles = useMemo(() => {
     return [
-      new Animated.Value(0), // Choose Goose
+      new Animated.Value(0),
       ...items.map(() => new Animated.Value(0)),
     ];
   }, [animationKey]);
 
-function startMusic() {
-  musicPlayer.loop = true;
-  musicPlayer.volume = 0.5;
-  musicPlayer.play();
-}
+  function startMusic() {
+    musicPlayer.loop = true;
+    musicPlayer.volume = 0.5;
+    musicPlayer.play();
+  }
 
   useEffect(() => {
     allBubbles.forEach((bubble) => bubble.setValue(0));
@@ -99,71 +104,92 @@ function startMusic() {
       style={styles.background}
       imageStyle={styles.backgroundImage}
     >
-      
       <Pressable style={styles.languageButton} onPress={changeLanguage}>
         <Text style={styles.languageButtonText}>
           {language === "en" ? "FR" : "EN"}
         </Text>
       </Pressable>
 
-      <View style={styles.header}>
-        <Image
-          source={require("../../assets/images/shopping_time.png")}
-          style={styles.titleImage}
-          resizeMode="contain"
-        />
+      <Pressable style={styles.musicButton} onPress={startMusic}>
+        <Text style={styles.musicButtonText}>♪</Text>
+      </Pressable>
 
-        <View style={styles.speechBubble}>
-          <Text style={styles.speechText}>{randomQuote[language]}</Text>
-        </View>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.header, isMobile && styles.headerMobile]}>
+          <Image
+            source={require("../../assets/images/shopping_time.png")}
+            style={[styles.titleImage, isMobile && styles.titleImageMobile]}
+            resizeMode="contain"
+          />
 
-        <Animated.View style={[styles.gooseBubbleWrapper, getBubbleStyle(0)]}>
-          <Pressable
-            onPress={() => console.log("Choose Goose clicked")}
-            style={({ hovered, pressed }) => [
-              styles.gooseBubble,
-              hovered && styles.bubbleHover,
-              pressed && styles.bubblePressed,
+          <View style={[styles.speechBubble, isMobile && styles.speechBubbleMobile]}>
+            <Text style={styles.speechText}>{randomQuote[language]}</Text>
+          </View>
+
+          <Animated.View
+            style={[
+              styles.gooseBubbleWrapper,
+              isMobile && styles.gooseBubbleWrapperMobile,
+              getBubbleStyle(0),
             ]}
           >
-            <Image
-              source={require("../../assets/images/bubble.png")}
-              style={styles.gooseBubbleImage}
-            />
-            <Image
-              source={require("../../assets/images/choose_goose.png")}
-              style={styles.gooseImage}
-              resizeMode="contain"
-            />
-          </Pressable>
-        </Animated.View>
-        <Pressable style={styles.musicButton} onPress={startMusic}>
-  <Text style={styles.musicButtonText}>♪ Music</Text>
-</Pressable>
-      </View>
-
-      <View style={styles.grid}>
-        {items.map((item, index) => (
-          <Animated.View
-            key={`${item.image}-${animationKey}`}
-            style={[styles.itemBox, getBubbleStyle(index + 1)]}
-          >
             <Pressable
-              onPress={() => console.log("Item clicked:", item.name[language])}
+              onPress={() => console.log("Choose Goose clicked")}
               style={({ hovered, pressed }) => [
-                styles.itemBubble,
+                styles.gooseBubble,
                 hovered && styles.bubbleHover,
                 pressed && styles.bubblePressed,
               ]}
             >
-              <Image source={images[item.image]} style={styles.itemImage} />
+              <Image
+                source={require("../../assets/images/bubble.png")}
+                style={styles.gooseBubbleImage}
+              />
+              <Image
+                source={require("../../assets/images/choose_goose.png")}
+                style={styles.gooseImage}
+                resizeMode="contain"
+              />
             </Pressable>
-
-            <Text style={styles.itemName}>{item.name[language]}</Text>
-            <Text style={styles.itemPrice}>{item.price}</Text>
           </Animated.View>
-        ))}
-      </View>
+        </View>
+
+       <View style={[styles.grid, isMobile && styles.gridMobile]}>
+          {items.map((item, index) => (
+       <Animated.View
+  key={`${item.image}-${animationKey}`}
+  style={[
+    styles.itemBox,
+    isMobile && styles.itemBoxMobile,
+    getBubbleStyle(index + 1),
+  ]}
+
+            >
+              <Pressable
+                onPress={() => console.log("Item clicked:", item.name[language])}
+                style={({ hovered, pressed }) => [
+                  styles.itemBubble,
+                  isMobile && styles.itemBubbleMobile,
+                  hovered && styles.bubbleHover,
+                  pressed && styles.bubblePressed,
+                ]}
+              >
+                <Image
+                  source={images[item.image]}
+                  style={[styles.itemImage, isMobile && styles.itemImageMobile]}
+                />
+              </Pressable>
+
+              <Text style={styles.itemName}>{item.name[language]}</Text>
+              <Text style={styles.itemPrice}>{item.price}</Text>
+            </Animated.View>
+          ))}
+        </View>
+      </ScrollView>
     </ImageBackground>
   );
 }
@@ -177,6 +203,14 @@ const styles = StyleSheet.create({
 
   backgroundImage: {
     resizeMode: "cover",
+  },
+
+  scroll: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    paddingBottom: 80,
   },
 
   languageButton: {
@@ -197,9 +231,32 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
+  musicButton: {
+    position: "absolute",
+    top: 15,
+    right: 70,
+    zIndex: 10,
+    backgroundColor: "white",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+
+  musicButtonText: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
   header: {
-    height: 210,
+    height: 230,
     position: "relative",
+  },
+
+  headerMobile: {
+    height: 390,
+    alignItems: "center",
   },
 
   titleImage: {
@@ -208,6 +265,14 @@ const styles = StyleSheet.create({
     left: 25,
     width: 250,
     height: 130,
+  },
+
+  titleImageMobile: {
+    position: "relative",
+    top: 25,
+    left: 0,
+    width: 260,
+    height: 120,
   },
 
   speechBubble: {
@@ -225,6 +290,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
+  speechBubbleMobile: {
+    position: "relative",
+    top: 15,
+    right: 0,
+    width: "85%",
+    minHeight: 85,
+  },
+
   speechText: {
     fontSize: 15,
     fontWeight: "800",
@@ -235,6 +308,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 25,
     right: 25,
+  },
+
+  gooseBubbleWrapperMobile: {
+    position: "relative",
+    top: 35,
+    right: 0,
   },
 
   gooseBubble: {
@@ -262,20 +341,29 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    columnGap: 10,
-    rowGap: 35,
-    paddingHorizontal: 110,
-    marginTop: 70,
-  },
+grid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  rowGap: 50,
+  columnGap: 15,
+  paddingHorizontal: 40,
+  marginTop: 40,
+},
 
-  itemBox: {
-    width: "23%",
-    alignItems: "center",
-  },
+gridMobile: {
+  paddingHorizontal: 10,
+  rowGap: 25,
+  columnGap: 10,
+},
+itemBox: {
+  width: "22%", // 4 par ligne sur web
+  alignItems: "center",
+},
+
+itemBoxMobile: {
+  width: "45%", // 2 par ligne sur mobile
+},
 
   itemBubble: {
     width: 120,
@@ -286,6 +374,11 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 190, 255, 0.9)",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  itemBubbleMobile: {
+    width: 105,
+    height: 105,
   },
 
   bubbleHover: {
@@ -304,6 +397,11 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
 
+  itemImageMobile: {
+    width: 72,
+    height: 72,
+  },
+
   itemName: {
     marginTop: 5,
     fontSize: 14,
@@ -317,21 +415,4 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "black",
   },
-  musicButton: {
-  position: "absolute",
-  top: 15,
-  right: 70,
-  zIndex: 10,
-  backgroundColor: "white",
-  borderWidth: 2,
-  borderColor: "black",
-  borderRadius: 20,
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-},
-
-musicButtonText: {
-  fontSize: 14,
-  fontWeight: "900",
-},
 });
