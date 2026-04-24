@@ -1,4 +1,5 @@
 import { useAudioPlayer } from "expo-audio";
+import { Link } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -13,6 +14,7 @@ import {
 
 import gooseQuotes from "../../assets/data/gooseQuotes.json";
 import items from "../../assets/data/items.json";
+import ChooseGooseHeader from "../../components/ChooseGooseHeader";
 
 type Language = "en" | "fr";
 
@@ -63,14 +65,9 @@ export default function Index() {
       itemViews.push(
         <View
           key={item.id}
-          style={[
-            styles.itemBox,
-            isMobile && styles.itemBoxMobile,
-          ]}
+          style={[styles.itemBox, isMobile && styles.itemBoxMobile]}
         >
-          <Text style={styles.itemName}>
-            {item.name[language]}
-          </Text>
+          <Text style={styles.itemName}>{item.name[language]}</Text>
 
           <Pressable
             onPress={() =>
@@ -85,10 +82,7 @@ export default function Index() {
           >
             <Image
               source={images[item.image]}
-              style={[
-                styles.itemImage,
-                isMobile && styles.itemImageMobile,
-              ]}
+              style={[styles.itemImage, isMobile && styles.itemImageMobile]}
             />
           </Pressable>
 
@@ -98,9 +92,7 @@ export default function Index() {
               style={styles.goldIcon}
             />
 
-            <Text style={styles.itemPrice}>
-              {item.price}
-            </Text>
+            <Text style={styles.itemPrice}>{item.price}</Text>
           </View>
         </View>
       );
@@ -115,12 +107,6 @@ export default function Index() {
       style={styles.background}
       imageStyle={styles.backgroundImage}
     >
-      <Pressable style={styles.languageButton} onPress={changeLanguage}>
-        <Text style={styles.languageButtonText}>
-          {language === "en" ? "FR" : "EN"}
-        </Text>
-      </Pressable>
-
       <Pressable style={styles.musicButton} onPress={startMusic}>
         <Text style={styles.musicButtonText}>♪</Text>
       </Pressable>
@@ -130,58 +116,23 @@ export default function Index() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.header, isMobile && styles.headerMobile]}>
-          <Image
-            source={require("../../assets/images/shopping_time.png")}
-            style={[
-              styles.titleImage,
-              isMobile && styles.titleImageMobile,
-            ]}
-            resizeMode="contain"
-          />
-
-          <View
-            style={[
-              styles.speechBubble,
-              isMobile && styles.speechBubbleMobile,
-            ]}
-          >
-            <Text style={styles.speechText}>
-              {randomQuote[language]}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.gooseBubbleWrapper,
-              isMobile && styles.gooseBubbleWrapperMobile,
-            ]}
-          >
-            <Pressable
-              onPress={() => console.log("Choose Goose clicked")}
-              style={({ hovered, pressed }) => [
-                styles.gooseBubble,
-                hovered && styles.bubbleHover,
-                pressed && styles.bubblePressed,
-              ]}
-            >
-              <Image
-                source={require("../../assets/images/bubble.png")}
-                style={styles.gooseBubbleImage}
-              />
-
-              <Image
-                source={require("../../assets/images/choose_goose.png")}
-                style={styles.gooseImage}
-                resizeMode="contain"
-              />
-            </Pressable>
-          </View>
-        </View>
+        <ChooseGooseHeader
+          quote={randomQuote[language]}
+          language={language}
+          onLanguageChange={changeLanguage}
+        />
 
         <View style={[styles.grid, isMobile && styles.gridMobile]}>
           {showItems()}
         </View>
+
+        <Link href="/connexion" asChild>
+          <Pressable style={styles.connexionButton}>
+            <Text style={styles.connexionButtonText}>
+              {language === "en" ? "Login / Sign up" : "Connexion / S'inscrire"}
+            </Text>
+          </Pressable>
+        </Link>
       </ScrollView>
     </ImageBackground>
   );
@@ -206,24 +157,6 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
 
-  languageButton: {
-    position: "absolute",
-    top: 15,
-    right: 15,
-    zIndex: 10,
-    backgroundColor: "white",
-    borderWidth: 2,
-    borderColor: "black",
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-
-  languageButtonText: {
-    fontSize: 14,
-    fontWeight: "900",
-  },
-
   musicButton: {
     position: "absolute",
     top: 15,
@@ -240,98 +173,6 @@ const styles = StyleSheet.create({
   musicButtonText: {
     fontSize: 14,
     fontWeight: "900",
-  },
-
-  header: {
-    height: 230,
-    position: "relative",
-  },
-
-  headerMobile: {
-    height: 390,
-    alignItems: "center",
-  },
-
-  titleImage: {
-    position: "absolute",
-    top: 10,
-    left: 25,
-    width: 250,
-    height: 130,
-  },
-
-  titleImageMobile: {
-    position: "relative",
-    top: 25,
-    left: 0,
-    width: 260,
-    height: 120,
-  },
-
-  speechBubble: {
-    position: "absolute",
-    top: 38,
-    right: 145,
-    width: 360,
-    minHeight: 95,
-    backgroundColor: "white",
-    borderWidth: 3,
-    borderColor: "black",
-    borderRadius: 35,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    justifyContent: "center",
-  },
-
-  speechBubbleMobile: {
-    position: "relative",
-    top: 15,
-    right: 0,
-    width: "85%",
-    minHeight: 85,
-  },
-
-  speechText: {
-    fontSize: 15,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-
-  gooseBubbleWrapper: {
-    position: "absolute",
-    top: 25,
-    right: 25,
-  },
-
-  gooseBubbleWrapperMobile: {
-    position: "relative",
-    top: 35,
-    right: 0,
-  },
-
-  gooseBubble: {
-    width: 125,
-    height: 125,
-    borderRadius: 70,
-    backgroundColor: "rgba(255,255,255,0.35)",
-    borderWidth: 3,
-    borderColor: "rgba(255, 190, 255, 0.9)",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-
-  gooseBubbleImage: {
-    position: "absolute",
-    width: 135,
-    height: 135,
-    opacity: 0.75,
-  },
-
-  gooseImage: {
-    width: 95,
-    height: 95,
-    borderRadius: 50,
   },
 
   grid: {
@@ -365,6 +206,10 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     textAlign: "center",
     color: "black",
+    backgroundColor: "rgba(255,255,255,0.78)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
 
   itemBubble: {
@@ -409,7 +254,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    backgroundColor: "rgba(255,255,255,0.78)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
 
   goldIcon: {
@@ -420,6 +268,24 @@ const styles = StyleSheet.create({
 
   itemPrice: {
     fontSize: 15,
+    fontWeight: "900",
+    color: "black",
+  },
+
+  connexionButton: {
+    alignSelf: "center",
+    marginTop: 60,
+    marginBottom: 80,
+    backgroundColor: "#fff8d6",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+  },
+
+  connexionButtonText: {
+    fontSize: 18,
     fontWeight: "900",
     color: "black",
   },

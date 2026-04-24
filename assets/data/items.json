@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": {
-      "en": "Finn Sword",
+      "en": "Finn's Sword",
       "fr": "Épée de Finn"
     },
     "price": "100",
@@ -38,8 +38,8 @@
   {
     "id": 5,
     "name": {
-      "en": "Jake's Sandwich",
-      "fr": "Sandwich de Jake"
+      "en": "Jake's Legendary Sandwich",
+      "fr": "Sandwich Légendaire de Jake"
     },
     "price": "30",
     "image": "jakes_sandwich"
@@ -48,7 +48,7 @@
     "id": 6,
     "name": {
       "en": "Thumb Armor",
-      "fr": "Armure de pouce"
+      "fr": "Armure pour le pouce"
     },
     "price": "40",
     "image": "thumb_armor"
@@ -66,7 +66,7 @@
     "id": 8,
     "name": {
       "en": "Demon Blood Sword",
-      "fr": "Épée de sang démoniaque"
+      "fr": "Épée sanguinaire de démon"
     },
     "price": "500",
     "image": "demon_blood_sword"
