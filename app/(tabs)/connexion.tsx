@@ -1,18 +1,16 @@
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
-    ImageBackground,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ImageBackground,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 import connexionText from "../../assets/data/connexion.json";
-import gooseQuotes from "../../assets/data/gooseQuotes.json";
-import ChooseGooseHeader from "../../components/ChooseGooseHeader";
 
 type Language = "en" | "fr";
 
@@ -21,9 +19,6 @@ export default function Connexion() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const randomIndex = Math.floor(Math.random() * gooseQuotes.length);
-  const randomQuote = gooseQuotes[randomIndex];
 
   function changeLanguage() {
     if (language === "en") {
@@ -39,16 +34,16 @@ export default function Connexion() {
       style={styles.background}
       imageStyle={styles.backgroundImage}
     >
-      <ChooseGooseHeader
-        quote={randomQuote[language]}
-        language={language}
-        onLanguageChange={changeLanguage}
-      />
+      <Pressable style={styles.languageButton} onPress={changeLanguage}>
+        <Text style={styles.languageButtonText}>
+          {language === "en" ? "FR" : "EN"}
+        </Text>
+      </Pressable>
 
       <ScrollView
-  contentContainerStyle={styles.container}
-  showsVerticalScrollIndicator={false}
->
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.card}>
           <Text style={styles.title}>{connexionText.title[language]}</Text>
 
@@ -111,14 +106,32 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
 
-container:{
- flexGrow:1,
- alignItems:"center",
- justifyContent:"center",
- padding:20,
- paddingTop:40,
- paddingBottom:60,
-},
+  languageButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+    zIndex: 10,
+    backgroundColor: "white",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+
+  languageButtonText: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  container: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    paddingTop: 40,
+    paddingBottom: 60,
+  },
 
   card: {
     width: "90%",
