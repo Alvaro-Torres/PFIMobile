@@ -6,8 +6,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { CartProvider } from "@/components/PanierContext";
 import { useColorScheme } from '@/components/useColorScheme';
-
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
@@ -41,13 +41,14 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
-  return (
+return (
+  <CartProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
-  );
+  </CartProvider>
+);
 }

@@ -1,5 +1,5 @@
 import { useAudioPlayer } from "expo-audio";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -68,24 +68,26 @@ export default function Index() {
           style={[styles.itemBox, isMobile && styles.itemBoxMobile]}
         >
           <Text style={styles.itemName}>{item.name[language]}</Text>
-
-          <Pressable
-            onPress={() =>
-              console.log("Item clicked:", item.id, item.name[language])
-            }
-            style={({ hovered, pressed }) => [
-              styles.itemBubble,
-              isMobile && styles.itemBubbleMobile,
-              hovered && styles.bubbleHover,
-              pressed && styles.bubblePressed,
-            ]}
-          >
-            <Image
-              source={images[item.image]}
-              style={[styles.itemImage, isMobile && styles.itemImageMobile]}
-            />
-          </Pressable>
-
+<Pressable
+  onPress={() =>
+    router.push({
+      pathname: "/AjouterAuPanier",
+      params: { id: item.id }
+    })
+  }
+  style={({ hovered, pressed }) => [
+    styles.itemBubble,
+    isMobile && styles.itemBubbleMobile,
+    hovered && styles.bubbleHover,
+    pressed && styles.bubblePressed,
+  ]}
+>
+  <Image
+    source={images[item.image]}
+    style={[styles.itemImage, isMobile && styles.itemImageMobile]}
+  />
+</Pressable>
+   
           <View style={styles.priceRow}>
             <Image
               source={require("../../assets/images/gold.png")}

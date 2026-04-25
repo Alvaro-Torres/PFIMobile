@@ -1,0 +1,63 @@
+{
+  "quantity": {
+    "en": "Quantity",
+    "fr": "Quantité"
+  },
+  "unitPrice": {
+    "en": "Unit price",
+    "fr": "Prix de l'unité"
+  },
+  "totalPrice": {
+    "en": "Total price",
+    "fr": "Prix total"
+  },
+  "addToCart": {
+    "en": "Add to cart",
+    "fr": "Ajouter au panier"
+  },
+  "back": {
+    "en": "Back to shop",
+    "fr": "Retour au magasin"
+  },
+  "notFound": {
+    "en": "Item not found",
+    "fr": "Item introuvable"
+  },
+  
+  "cartTitle": {
+    "en": "Cart",
+    "fr": "Panier"
+  },
+  "emptyCart": {
+    "en": "Your cart is empty",
+    "fr": "Votre panier est vide"
+  },
+  "itemTotal": {
+    "en": "Item total",
+    "fr": "Total de l'item"
+  },
+  "cartTotal": {
+    "en": "Cart total",
+    "fr": "Total du panier"
+  },
+  "validateCart": {
+    "en": "Validate cart",
+    "fr": "Valider le panier"
+  },
+  "clearCart": {
+    "en": "Clear cart",
+    "fr": "Vider le panier"
+  },
+  "backShop": {
+    "en": "Back to shop",
+    "fr": "Retour au magasin"
+  },
+  "congratsTitle": {
+    "en": "Cart validated!",
+    "fr": "Panier validé!"
+  },
+  "goosePoem": {
+    "en": "Your treasures are packed, your adventure takes flight, Choose Goose smiles under the magical light!",
+    "fr": "Tes trésors sont prêts, ton aventure s'éveille, Choose Goose sourit sous la douce merveille!"
+  }
+}
