@@ -33,7 +33,7 @@ const images: Record<string, any> = {
   billy_sword: require("../../assets/images/billy_sword.png"),
   jakes_sandwich: require("../../assets/images/jakes_sandwich.png"),
   thumb_armor: require("../../assets/images/thumb_armor.png"),
-  enchiridion: require("../../assets/images/enchiridion.png"),
+  Enchiridion: require("../../assets/images/Enchiridion.png"),
   demon_blood_sword: require("../../assets/images/demon_blood_sword.png"),
 };
 

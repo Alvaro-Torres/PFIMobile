@@ -1,0 +1,42 @@
+{
+  "title": {
+    "en": "Sign Up",
+    "fr": "Inscription"
+  },
+  "emailPlaceholder": {
+    "en": "Email",
+    "fr": "Courriel"
+  },
+  "passwordPlaceholder": {
+    "en": "Password",
+    "fr": "Mot de passe"
+  },
+  "confirmPasswordPlaceholder": {
+    "en": "Confirm Password",
+    "fr": "Confirmer le mot de passe"
+  },
+  "createButton": {
+    "en": "Create Account",
+    "fr": "Créer un compte"
+  },
+  "backButton": {
+    "en": "← Back to Login",
+    "fr": "← Retour à la connexion"
+  },
+  "loading": {
+    "en": "...",
+    "fr": "..."
+  },
+  "errorRequired": {
+    "en": "All fields are required.",
+    "fr": "Tous les champs sont requis."
+  },
+  "errorEmail": {
+    "en": "Invalid email.",
+    "fr": "Courriel invalide."
+  },
+  "errorPassword": {
+    "en": "Passwords do not match.",
+    "fr": "Les mots de passe ne correspondent pas."
+  }
+}
