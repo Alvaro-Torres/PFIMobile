@@ -9,16 +9,20 @@ import {
   TextInput,
   View,
 } from "react-native";
+import db from "../../database";
 
 import connexionText from "../../assets/data/connexion.json";
 
 type Language = "en" | "fr";
+
+
 
 export default function Connexion() {
   const [language, setLanguage] = useState<Language>("en");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   function changeLanguage() {
     if (language === "en") {
@@ -27,6 +31,25 @@ export default function Connexion() {
       setLanguage("en");
     }
   }
+
+  async function handleLogin() {
+  const user = await db.getFirstAsync<any>(
+    "SELECT * FROM users WHERE email = ? AND password = ?",
+    [email, password]
+  );
+
+  if (!user) {
+    setError("Invalid email or password.");
+    return;
+  }
+
+  if (user.role === "admin") {
+    //todo
+    router.push("/");
+  } else {
+    router.push("/");
+  }
+}
 
   return (
     <ImageBackground
@@ -64,9 +87,11 @@ export default function Connexion() {
             onChangeText={setPassword}
           />
 
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
           <Pressable
             style={styles.mainButton}
-            onPress={() => console.log("login later")}
+            onPress={handleLogin}
           >
             <Text style={styles.buttonText}>
               {connexionText.loginButton[language]}
@@ -99,7 +124,15 @@ export default function Connexion() {
   );
 }
 
+
+
 const styles = StyleSheet.create({
+  errorText: {
+  color: "red",
+  fontWeight: "700",
+  marginBottom: 10,
+  textAlign: "center",
+},
   background: {
     flex: 1,
     width: "100%",

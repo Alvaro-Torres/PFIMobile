@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
   ImageBackground,
@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import db from "../../database";
 
 import inscriptionText from "../../assets/data/inscription.json";
 
@@ -26,7 +27,7 @@ export default function Inscription() {
     setLanguage(language === "en" ? "fr" : "en");
   }
 
-  function handleSignup() {
+  async function handleSignup() {
     setError("");
 
     if (!email || !password || !confirmPassword) {
@@ -43,9 +44,25 @@ export default function Inscription() {
     }
 
     setLoading(true);
-    // TODO: call your signup API here
-    console.log("signup later");
-    setLoading(false);
+
+
+
+    const existing = await db.getFirstAsync(
+    "SELECT * FROM users WHERE email = ?", [email]
+  );
+
+  if (existing) {
+    setError(inscriptionText.errorEmailTaken[language]);
+    return;
+  }
+
+  await db.runAsync(
+    "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
+    [email, password, "user"]
+  );
+
+  setLoading(false);
+  router.push("/connexion");
   }
 
   return (

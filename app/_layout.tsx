@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 
 import { CartProvider } from "@/components/PanierContext";
 import { useColorScheme } from '@/components/useColorScheme';
+import { initDatabase } from "../database";
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
@@ -31,6 +32,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    initDatabase();
+  }, []);
 
   if (!loaded) {
     return null;

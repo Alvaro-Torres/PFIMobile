@@ -38,5 +38,9 @@
   "errorPassword": {
     "en": "Passwords do not match.",
     "fr": "Les mots de passe ne correspondent pas."
-  }
+  },
+  "errorEmailTaken": {
+  "en": "Email already in use.",
+  "fr": "Courriel déjà utilisé."
+}
 }
