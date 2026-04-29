@@ -17,6 +17,7 @@ type Language = "en" | "fr";
 
 export default function Inscription() {
   const [language, setLanguage] = useState<Language>("en");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,8 +58,8 @@ export default function Inscription() {
   }
 
   await db.runAsync(
-    "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
-    [email, password, "user"]
+    "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
+    [username, email, password, "user"]
   );
 
   setLoading(false);

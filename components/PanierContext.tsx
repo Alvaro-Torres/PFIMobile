@@ -13,8 +13,18 @@ export type CartItem = {
   quantity: number;
 };
 
+type LoggedUser = {
+  id: number;
+  email: string;
+  solde: number;
+};
+
 type CartContextType = {
   cartItems: CartItem[];
+
+  loggedUser: LoggedUser | null;
+  setLoggedUser: (user: LoggedUser | null) => void;
+
   addToCart: (item: Omit<CartItem, "quantity">, quantity: number) => void;
   increaseQuantity: (id: number) => void;
   decreaseQuantity: (id: number) => void;
@@ -25,6 +35,7 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loggedUser, setLoggedUser] = useState<LoggedUser | null>(null);
 
   function addToCart(item: Omit<CartItem, "quantity">, quantity: number) {
     setCartItems((currentCart) => {
@@ -68,6 +79,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         cartItems,
+        loggedUser,
+        setLoggedUser,
         addToCart,
         increaseQuantity,
         decreaseQuantity,

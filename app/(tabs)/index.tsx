@@ -1,6 +1,6 @@
 import { useAudioPlayer } from "expo-audio";
 import { Link, router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -8,15 +8,25 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 
 import gooseQuotes from "../../assets/data/gooseQuotes.json";
-import items from "../../assets/data/items.json";
 import ChooseGooseHeader from "../../components/ChooseGooseHeader";
+import { useCart } from "../../components/PanierContext";
+import db from "../../database";
 
 type Language = "en" | "fr";
+
+type Product = {
+  id: number;
+  name_en: string;
+  name_fr: string;
+  price: number;
+  image: string;
+  description_en: string;
+  description_fr: string;
+};
 
 const music = require("../../assets/sfx/adventure_time.mp3");
 
@@ -27,20 +37,32 @@ const images: Record<string, any> = {
   billy_sword: require("../../assets/images/billy_sword.png"),
   jakes_sandwich: require("../../assets/images/jakes_sandwich.png"),
   thumb_armor: require("../../assets/images/thumb_armor.png"),
-  Enchiridion: require("../../assets/images/Enchiridion.png"),
+  enchiridion: require("../../assets/images/Enchiridion.png"),
   demon_blood_sword: require("../../assets/images/demon_blood_sword.png"),
 };
 
 export default function Index() {
   const [language, setLanguage] = useState<Language>("en");
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const { width } = useWindowDimensions();
-  const isMobile = width < 700;
+  const { loggedUser, setLoggedUser } = useCart();
 
   const musicPlayer = useAudioPlayer(music);
 
   const randomIndex = Math.floor(Math.random() * gooseQuotes.length);
   const randomQuote = gooseQuotes[randomIndex];
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  async function loadProducts() {
+    const result = await db.getAllAsync<Product>(
+      "SELECT id, name_en, name_fr, price, image, description_en, description_fr FROM products"
+    );
+
+    setProducts(result);
+  }
 
   function startMusic() {
     musicPlayer.loop = true;
@@ -49,45 +71,50 @@ export default function Index() {
   }
 
   function changeLanguage() {
-    if (language === "en") {
-      setLanguage("fr");
-    } else {
-      setLanguage("en");
+    setLanguage(language === "en" ? "fr" : "en");
+  }
+
+  function getUsername() {
+    const user = loggedUser as any;
+
+    if (user?.username) {
+      return user.username;
     }
+
+    if (loggedUser?.email) {
+      return loggedUser.email.split("@")[0];
+    }
+
+    return language === "en" ? "The Deer" : "Le Cerf";
   }
 
   function showItems() {
     const itemViews = [];
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+    for (let i = 0; i < products.length; i++) {
+      const item = products[i];
 
       itemViews.push(
-        <View
-          key={item.id}
-          style={[styles.itemBox, isMobile && styles.itemBoxMobile]}
-        >
-          <Text style={styles.itemName}>{item.name[language]}</Text>
-<Pressable
-  onPress={() =>
-    router.push({
-      pathname: "/AjouterAuPanier",
-      params: { id: item.id }
-    })
-  }
-  style={({ hovered, pressed }) => [
-    styles.itemBubble,
-    isMobile && styles.itemBubbleMobile,
-    hovered && styles.bubbleHover,
-    pressed && styles.bubblePressed,
-  ]}
->
-  <Image
-    source={images[item.image]}
-    style={[styles.itemImage, isMobile && styles.itemImageMobile]}
-  />
-</Pressable>
-   
+        <View key={item.id} style={styles.itemBox}>
+          <Text style={styles.itemName}>
+            {language === "en" ? item.name_en : item.name_fr}
+          </Text>
+
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/AjouterAuPanier",
+                params: { id: item.id },
+              } as any)
+            }
+            style={({ pressed }) => [
+              styles.itemBubble,
+              pressed && styles.bubblePressed,
+            ]}
+          >
+            <Image source={images[item.image]} style={styles.itemImage} />
+          </Pressable>
+
           <View style={styles.priceRow}>
             <Image
               source={require("../../assets/images/gold.png")}
@@ -124,17 +151,51 @@ export default function Index() {
           onLanguageChange={changeLanguage}
         />
 
-        <View style={[styles.grid, isMobile && styles.gridMobile]}>
-          {showItems()}
+        <View style={styles.grid}>
+          {products.length === 0 ? (
+            <Text style={styles.emptyText}>
+              {language === "en"
+                ? "No products in the shop"
+                : "Aucun produit dans le magasin"}
+            </Text>
+          ) : (
+            showItems()
+          )}
         </View>
 
-        <Link href="/connexion" asChild>
-          <Pressable style={styles.connexionButton}>
-            <Text style={styles.connexionButtonText}>
-              {language === "en" ? "Login / Sign up" : "Connexion / S'inscrire"}
-            </Text>
-          </Pressable>
-        </Link>
+        {loggedUser ? (
+          <View style={styles.profileCard}>
+            <Text style={styles.profileName}>{getUsername()}</Text>
+
+            <View style={styles.soldeRow}>
+              <Image
+                source={require("../../assets/images/solde.png")}
+                style={styles.soldeIcon}
+              />
+
+              <Text style={styles.soldeText}>{loggedUser.solde}</Text>
+            </View>
+
+            <Pressable
+              style={styles.logoutButton}
+              onPress={() => setLoggedUser(null)}
+            >
+              <Text style={styles.logoutText}>
+                {language === "en" ? "Log out" : "Déconnexion"}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Link href="/connexion" asChild>
+            <Pressable style={styles.connexionButton}>
+              <Text style={styles.connexionButtonText}>
+                {language === "en"
+                  ? "Login / Sign up"
+                  : "Connexion / S'inscrire"}
+              </Text>
+            </Pressable>
+          </Link>
+        )}
       </ScrollView>
     </ImageBackground>
   );
@@ -181,25 +242,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    rowGap: 50,
-    columnGap: 15,
-    paddingHorizontal: 40,
+    rowGap: 25,
+    columnGap: 10,
+    paddingHorizontal: 10,
     marginTop: 40,
   },
 
-  gridMobile: {
-    paddingHorizontal: 10,
-    rowGap: 25,
-    columnGap: 10,
-  },
-
   itemBox: {
-    width: "22%",
-    alignItems: "center",
-  },
-
-  itemBoxMobile: {
     width: "45%",
+    alignItems: "center",
   },
 
   itemName: {
@@ -215,8 +266,8 @@ const styles = StyleSheet.create({
   },
 
   itemBubble: {
-    width: 120,
-    height: 120,
+    width: 105,
+    height: 105,
     borderRadius: 70,
     backgroundColor: "rgba(255,255,255,0.35)",
     borderWidth: 3,
@@ -225,30 +276,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  itemBubbleMobile: {
-    width: 105,
-    height: 105,
-  },
-
-  bubbleHover: {
-    transform: [{ scale: 1.12 }],
-    backgroundColor: "rgba(255,255,255,0.6)",
-    borderColor: "rgba(255, 120, 255, 1)",
-  },
-
   bubblePressed: {
     transform: [{ scale: 0.95 }],
   },
 
   itemImage: {
-    width: 82,
-    height: 82,
-    resizeMode: "contain",
-  },
-
-  itemImageMobile: {
     width: 72,
     height: 72,
+    resizeMode: "contain",
   },
 
   priceRow: {
@@ -274,6 +309,17 @@ const styles = StyleSheet.create({
     color: "black",
   },
 
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "900",
+    backgroundColor: "white",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 18,
+    padding: 15,
+    textAlign: "center",
+  },
+
   connexionButton: {
     alignSelf: "center",
     marginTop: 60,
@@ -288,6 +334,60 @@ const styles = StyleSheet.create({
 
   connexionButtonText: {
     fontSize: 18,
+    fontWeight: "900",
+    color: "black",
+  },
+
+  profileCard: {
+    alignSelf: "center",
+    marginTop: 60,
+    marginBottom: 80,
+    backgroundColor: "#fff8d6",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+
+  profileName: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "black",
+    marginBottom: 8,
+  },
+
+  soldeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  soldeIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+    marginRight: 6,
+  },
+
+  soldeText: {
+    fontSize: 17,
+    fontWeight: "900",
+    color: "black",
+  },
+
+  logoutButton: {
+    backgroundColor: "#ffb3b3",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+
+  logoutText: {
+    fontSize: 14,
     fontWeight: "900",
     color: "black",
   },

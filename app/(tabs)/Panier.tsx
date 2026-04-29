@@ -1,13 +1,13 @@
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
-    Image,
-    ImageBackground,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Image,
+  ImageBackground,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 import panierText from "../../assets/data/panier.json";
@@ -44,15 +44,40 @@ export default function Panier() {
   function changeLanguage() {
     setLanguage(language === "en" ? "fr" : "en");
   }
+  function validateCart() {
+    if (cartItems.length === 0) return;
 
-function validateCart() {
-  if (cartItems.length === 0) return;
+    // temporaire jusqu'à brancher vrai login
+    const loggedUser = true;
 
-  console.log("Items ajoutés à l'inventaire:", cartItems);
+    // temporaire jusqu'à lire vrai solde du joueur
+    const userSolde = 200;
 
-  clearCart();
-router.push("/PanierValide" as any);
-}
+    if (!loggedUser) {
+      router.push({
+        pathname: "/PanierValide",
+        params: { status: "notLogged" },
+      } as any);
+      return;
+    }
+
+    if (userSolde < cartTotal) {
+      router.push({
+        pathname: "/PanierValide",
+        params: { status: "noMoney" },
+      } as any);
+      return;
+    }
+
+    console.log("Items ajoutés à l'inventaire:", cartItems);
+
+    clearCart();
+
+    router.push({
+      pathname: "/PanierValide",
+      params: { status: "success" },
+    } as any);
+  }
 
   return (
     <ImageBackground

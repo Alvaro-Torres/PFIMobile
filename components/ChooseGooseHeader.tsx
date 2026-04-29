@@ -1,213 +1,233 @@
-import React from "react";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
   Image,
   Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
-  View
+  View,
 } from "react-native";
 
 type Props = {
   quote: string;
   language: "en" | "fr";
   onLanguageChange: () => void;
-  onChooseGoosePress?: () => void;
 };
 
 export default function ChooseGooseHeader({
   quote,
   language,
   onLanguageChange,
-  onChooseGoosePress
 }: Props) {
+  const [showThoughts, setShowThoughts] = useState(false);
 
-const { width } = useWindowDimensions();
-const isMobile = width < 700;
+  function toggleThoughts() {
+    setShowThoughts(!showThoughts);
+  }
 
-return (
-<>
-<Pressable
-style={styles.languageButton}
-onPress={onLanguageChange}
->
-<Text style={styles.languageButtonText}>
-{language==="en" ? "FR" : "EN"}
-</Text>
-</Pressable>
+  function goToPanier() {
+    router.push("/Panier" as any);
+  }
 
-<View style={[
-styles.header,
-isMobile && styles.headerMobile
-]}>
+  function goToInventaire() {
+    router.push("/Inventaire" as any);
+  }
 
-<Image
-source={require("../assets/images/shopping_time.png")}
-style={[
-styles.titleImage,
-isMobile && styles.titleImageMobile
-]}
-resizeMode="contain"
-/>
+  return (
+    <>
+      <Pressable style={styles.languageButton} onPress={onLanguageChange}>
+        <Text style={styles.languageButtonText}>
+          {language === "en" ? "FR" : "EN"}
+        </Text>
+      </Pressable>
 
-<View style={[
-styles.speechBubble,
-isMobile && styles.speechBubbleMobile
-]}>
-<Text style={styles.speechText}>
-{quote}
-</Text>
-</View>
+      <View style={styles.header}>
+        <Image
+          source={require("../assets/images/shopping_time.png")}
+          style={styles.titleImage}
+          resizeMode="contain"
+        />
 
-<Pressable
-onPress={onChooseGoosePress}
-style={({hovered,pressed})=>[
-styles.gooseBubble,
-isMobile && styles.gooseBubbleMobile,
-hovered && styles.bubbleHover,
-pressed && styles.bubblePressed
-]}
->
+        <View style={styles.speechBubble}>
+          {!showThoughts ? (
+            <Text style={styles.speechText}>{quote}</Text>
+          ) : (
+            <View style={styles.thoughtContent}>
+              <Text style={styles.thoughtTitle}>
+                {language === "en"
+                  ? "Choose Goose thinks..."
+                  : "Choose Goose pense..."}
+              </Text>
 
-<Image
-source={require("../assets/images/bubble.png")}
-style={styles.gooseBubbleImage}
-/>
+              <View style={styles.thoughtButtons}>
+                <Pressable style={styles.thoughtButton} onPress={goToPanier}>
+                  <Text style={styles.cartEmoji}>🛒</Text>
+                  <Text style={styles.thoughtButtonText}>
+                    {language === "en" ? "Cart" : "Panier"}
+                  </Text>
+                </Pressable>
 
-<Image
-source={require("../assets/images/choose_goose.png")}
-style={styles.gooseImage}
-resizeMode="contain"
-/>
+                <Pressable style={styles.thoughtButton} onPress={goToInventaire}>
+                  <Image
+                    source={require("../assets/images/chest.png")}
+                    style={styles.chestIcon}
+                  />
+                  <Text style={styles.thoughtButtonText}>
+                    {language === "en" ? "Inventory" : "Inventaire"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </View>
 
-</Pressable>
+        <Pressable
+          onPress={toggleThoughts}
+          style={({ pressed }) => [
+            styles.gooseBubble,
+            pressed && styles.bubblePressed,
+          ]}
+        >
+          <Image
+            source={require("../assets/images/bubble.png")}
+            style={styles.gooseBubbleImage}
+          />
 
-</View>
-</>
-);
-
+          <Image
+            source={require("../assets/images/choose_goose.png")}
+            style={styles.gooseImage}
+            resizeMode="contain"
+          />
+        </Pressable>
+      </View>
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
+  languageButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+    zIndex: 20,
+    backgroundColor: "white",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
 
-languageButton:{
-position:"absolute",
-top:15,
-right:15,
-zIndex:10,
-backgroundColor:"white",
-borderWidth:2,
-borderColor:"black",
-borderRadius:20,
-paddingVertical:6,
-paddingHorizontal:12,
-},
+  languageButtonText: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
 
-languageButtonText:{
-fontSize:14,
-fontWeight:"900",
-},
+  header: {
+    height: 390,
+    alignItems: "center",
+    position: "relative",
+  },
 
-header:{
-height:230,
-position:"relative",
-},
+  titleImage: {
+    position: "relative",
+    top: 25,
+    width: 260,
+    height: 120,
+  },
 
-headerMobile:{
-height:390,
-alignItems:"center",
-},
+  speechBubble: {
+    position: "relative",
+    top: 15,
+    width: "85%",
+    minHeight: 110,
+    backgroundColor: "white",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 35,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    justifyContent: "center",
+  },
 
-titleImage:{
-position:"absolute",
-top:10,
-left:25,
-width:250,
-height:130,
-},
+  speechText: {
+    fontSize: 15,
+    fontWeight: "800",
+    textAlign: "center",
+  },
 
-titleImageMobile:{
-position:"relative",
-top:25,
-left:0,
-width:260,
-height:120,
-},
+  thoughtContent: {
+    alignItems: "center",
+  },
 
-speechBubble:{
-position:"absolute",
-top:38,
-right:145,
-width:360,
-minHeight:95,
-backgroundColor:"white",
-borderWidth:3,
-borderColor:"black",
-borderRadius:35,
-paddingVertical:14,
-paddingHorizontal:18,
-justifyContent:"center",
-},
+  thoughtTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    marginBottom: 10,
+    textAlign: "center",
+  },
 
-speechBubbleMobile:{
-position:"relative",
-top:15,
-right:0,
-width:"85%",
-minHeight:85,
-},
+  thoughtButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
 
-speechText:{
-fontSize:15,
-fontWeight:"800",
-textAlign:"center",
-},
+  thoughtButton: {
+    width: 115,
+    backgroundColor: "#fff8d6",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 20,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
 
-gooseBubble:{
-position:"absolute",
-top:25,
-right:25,
+  cartEmoji: {
+    fontSize: 30,
+    marginBottom: 3,
+  },
 
-width:125,
-height:125,
-borderRadius:70,
+  chestIcon: {
+    width: 34,
+    height: 34,
+    resizeMode: "contain",
+    marginBottom: 3,
+  },
 
-backgroundColor:"rgba(255,255,255,0.35)",
-borderWidth:3,
-borderColor:"rgba(255,190,255,0.9)",
+  thoughtButtonText: {
+    fontSize: 13,
+    fontWeight: "900",
+    textAlign: "center",
+  },
 
-alignItems:"center",
-justifyContent:"center",
-overflow:"hidden",
-},
+  gooseBubble: {
+    position: "relative",
+    top: 35,
+    width: 125,
+    height: 125,
+    borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.35)",
+    borderWidth: 3,
+    borderColor: "rgba(255,190,255,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
 
-gooseBubbleMobile:{
-position:"relative",
-top:35,
-right:0,
-},
+  gooseBubbleImage: {
+    position: "absolute",
+    width: 135,
+    height: 135,
+    opacity: 0.75,
+  },
 
-gooseBubbleImage:{
-position:"absolute",
-width:135,
-height:135,
-opacity:0.75,
-},
+  gooseImage: {
+    width: 95,
+    height: 95,
+    borderRadius: 50,
+  },
 
-gooseImage:{
-width:95,
-height:95,
-borderRadius:50,
-},
-
-bubbleHover:{
-transform:[{scale:1.12}],
-backgroundColor:"rgba(255,255,255,0.6)",
-borderColor:"rgba(255,120,255,1)",
-},
-
-bubblePressed:{
-transform:[{scale:0.95}],
-}
-
+  bubblePressed: {
+    transform: [{ scale: 0.95 }],
+  },
 });

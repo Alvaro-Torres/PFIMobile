@@ -9,47 +9,61 @@ import {
   TextInput,
   View,
 } from "react-native";
-import db from "../../database";
 
 import connexionText from "../../assets/data/connexion.json";
+import { useCart } from "../../components/PanierContext";
+import db from "../../database";
 
 type Language = "en" | "fr";
 
-
+type User = {
+  id: number;
+  username?: string;
+  email: string;
+  password: string;
+  role: string;
+  solde: number;
+};
 
 export default function Connexion() {
   const [language, setLanguage] = useState<Language>("en");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
 
+  const { setLoggedUser } = useCart();
+
   function changeLanguage() {
-    if (language === "en") {
-      setLanguage("fr");
-    } else {
-      setLanguage("en");
-    }
+    setLanguage(language === "en" ? "fr" : "en");
   }
 
   async function handleLogin() {
-  const user = await db.getFirstAsync<any>(
-    "SELECT * FROM users WHERE email = ? AND password = ?",
-    [email, password]
-  );
+    setError("");
 
-  if (!user) {
-    setError("Invalid email or password.");
-    return;
-  }
+    const user = await db.getFirstAsync<User>(
+      "SELECT * FROM users WHERE email = ? AND password = ?",
+      [email, password]
+    );
 
-  if (user.role === "admin") {
-    //todo
-    router.push("/");
-  } else {
+    if (!user) {
+      setError(
+        language === "en"
+          ? "Invalid email or password."
+          : "Courriel ou mot de passe invalide."
+      );
+      return;
+    }
+
+    setLoggedUser({
+      id: user.id,
+      email: user.email,
+      solde: user.solde ?? 500,
+    });
+
     router.push("/");
   }
-}
 
   return (
     <ImageBackground
@@ -76,6 +90,8 @@ export default function Connexion() {
             placeholderTextColor="#555"
             value={email}
             onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
 
           <TextInput
@@ -89,27 +105,19 @@ export default function Connexion() {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Pressable
-            style={styles.mainButton}
-            onPress={handleLogin}
-          >
+          <Pressable style={styles.mainButton} onPress={handleLogin}>
             <Text style={styles.buttonText}>
               {connexionText.loginButton[language]}
             </Text>
           </Pressable>
 
-          <Pressable
-            style={styles.secondaryButton}
-            onPress={() =>
-                router.push({
-                  pathname: "/inscription",
-                })
-              }
-          >
-            <Text style={styles.buttonText}>
-              {connexionText.signupButton[language]}
-            </Text>
-          </Pressable>
+          <Link href="/(tabs)/inscription" asChild>
+            <Pressable style={styles.secondaryButton}>
+              <Text style={styles.buttonText}>
+                {connexionText.signupButton[language]}
+              </Text>
+            </Pressable>
+          </Link>
         </View>
 
         <Link href="/" asChild>
@@ -124,15 +132,14 @@ export default function Connexion() {
   );
 }
 
-
-
 const styles = StyleSheet.create({
   errorText: {
-  color: "red",
-  fontWeight: "700",
-  marginBottom: 10,
-  textAlign: "center",
-},
+    color: "red",
+    fontWeight: "700",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
   background: {
     flex: 1,
     width: "100%",

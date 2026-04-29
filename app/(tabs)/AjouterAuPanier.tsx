@@ -1,5 +1,5 @@
 import { Link, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -10,20 +10,20 @@ import {
   View,
 } from "react-native";
 
-import items from "../../assets/data/items.json";
 import ajouterPanierText from "../../assets/data/panier.json";
 import { useCart } from "../../components/PanierContext";
+import db from "../../database";
 
 type Language = "en" | "fr";
 
-type Item = {
+type Product = {
   id: number;
-  name: {
-    en: string;
-    fr: string;
-  };
+  name_en: string;
+  name_fr: string;
   price: number;
   image: string;
+  description_en: string;
+  description_fr: string;
 };
 
 const images: Record<string, any> = {
@@ -33,20 +33,35 @@ const images: Record<string, any> = {
   billy_sword: require("../../assets/images/billy_sword.png"),
   jakes_sandwich: require("../../assets/images/jakes_sandwich.png"),
   thumb_armor: require("../../assets/images/thumb_armor.png"),
-  Enchiridion: require("../../assets/images/Enchiridion.png"),
+  enchiridion: require("../../assets/images/Enchiridion.png"),
   demon_blood_sword: require("../../assets/images/demon_blood_sword.png"),
 };
 
 export default function AjouterAuPanier() {
   const [language, setLanguage] = useState<Language>("en");
   const [quantity, setQuantity] = useState(1);
+  const [item, setItem] = useState<Product | null>(null);
 
   const { addToCart } = useCart();
 
   const params = useLocalSearchParams();
   const id = Number(params.id);
 
-  const item = (items as Item[]).find((x) => x.id === id);
+  useEffect(() => {
+    loadItem();
+  }, [id]);
+
+  async function loadItem() {
+    setItem(null);
+    setQuantity(1);
+
+    const result = await db.getFirstAsync<Product>(
+      "SELECT id, name_en, name_fr, price, image, description_en, description_fr FROM products WHERE id = ?",
+      [id]
+    );
+
+    setItem(result ?? null);
+  }
 
   function changeLanguage() {
     setLanguage(language === "en" ? "fr" : "en");
@@ -62,16 +77,6 @@ export default function AjouterAuPanier() {
         source={require("../../assets/images/background.png")}
         style={styles.background}
       >
-        <Pressable style={styles.cartButton} onPress={goToCart}>
-          <Text style={styles.cartButtonText}>🛒</Text>
-        </Pressable>
-
-        <Pressable style={styles.languageButton} onPress={changeLanguage}>
-          <Text style={styles.languageButtonText}>
-            {language === "en" ? "FR" : "EN"}
-          </Text>
-        </Pressable>
-
         <View style={styles.container}>
           <Text style={styles.errorText}>
             {ajouterPanierText.notFound[language]}
@@ -104,9 +109,13 @@ export default function AjouterAuPanier() {
   function addItemToCart() {
     if (!item) return;
     addToCart(
+      
       {
         id: item.id,
-        name: item.name,
+        name: {
+          en: item.name_en,
+          fr: item.name_fr,
+        },
         price: item.price,
         image: item.image,
       },
@@ -134,10 +143,20 @@ export default function AjouterAuPanier() {
 
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.card}>
-          <Text style={styles.itemName}>{item.name[language]}</Text>
+          <Text style={styles.itemName}>
+            {language === "en" ? item.name_en : item.name_fr}
+          </Text>
 
           <View style={styles.bigBubble}>
             <Image source={images[item.image]} style={styles.itemImage} />
+          </View>
+
+          <View style={styles.descriptionBox}>
+            <Text style={styles.descriptionText}>
+              {language === "en"
+                ? item.description_en
+                : item.description_fr}
+            </Text>
           </View>
 
           <Text style={styles.label}>
@@ -243,7 +262,6 @@ const styles = StyleSheet.create({
 
   card: {
     width: "90%",
-    maxWidth: 430,
     backgroundColor: "rgba(255,248,214,0.94)",
     borderWidth: 4,
     borderColor: "black",
@@ -255,8 +273,8 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 28,
     fontWeight: "900",
-    textAlign: "center",
     marginBottom: 20,
+    textAlign: "center",
   },
 
   bigBubble: {
@@ -266,9 +284,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.45)",
     borderWidth: 4,
     borderColor: "rgba(255,120,255,1)",
-    alignItems: "center",
     justifyContent: "center",
-    marginBottom: 25,
+    alignItems: "center",
+    marginBottom: 20,
   },
 
   itemImage: {
@@ -277,16 +295,31 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
 
+  descriptionBox: {
+    width: "100%",
+    backgroundColor: "white",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 22,
+    padding: 14,
+    marginBottom: 20,
+  },
+
+  descriptionText: {
+    fontSize: 15,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+
   label: {
     fontSize: 18,
     fontWeight: "900",
-    marginBottom: 10,
   },
 
   quantityRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 25,
+    marginVertical: 20,
   },
 
   quantityButton: {
@@ -296,8 +329,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderWidth: 3,
     borderColor: "black",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
   },
 
   quantityButtonText: {
@@ -309,12 +342,12 @@ const styles = StyleSheet.create({
     width: 90,
     height: 55,
     marginHorizontal: 15,
-    borderRadius: 18,
     backgroundColor: "#ffdf6b",
     borderWidth: 3,
     borderColor: "black",
-    alignItems: "center",
+    borderRadius: 18,
     justifyContent: "center",
+    alignItems: "center",
   },
 
   quantityText: {
@@ -333,16 +366,15 @@ const styles = StyleSheet.create({
   },
 
   priceText: {
-    fontSize: 17,
-    fontWeight: "900",
     textAlign: "center",
+    fontWeight: "900",
     marginBottom: 10,
   },
 
   totalText: {
-    fontSize: 21,
-    fontWeight: "900",
     textAlign: "center",
+    fontWeight: "900",
+    fontSize: 20,
   },
 
   validateButton: {
@@ -366,18 +398,12 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    fontSize: 16,
     fontWeight: "900",
   },
 
   errorText: {
     fontSize: 25,
     fontWeight: "900",
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: "black",
-    marginBottom: 20,
+    textAlign: "center",
   },
 });
