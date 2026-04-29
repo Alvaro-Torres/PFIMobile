@@ -12,7 +12,7 @@ import {
 
 import panierText from "../../assets/data/panier.json";
 import { useCart } from "../../components/PanierContext";
-
+import db from "../../database";
 type Language = "en" | "fr";
 
 const images: Record<string, any> = {
@@ -29,12 +29,14 @@ const images: Record<string, any> = {
 export default function Panier() {
   const [language, setLanguage] = useState<Language>("en");
 
-  const {
-    cartItems,
-    increaseQuantity,
-    decreaseQuantity,
-    clearCart,
-  } = useCart();
+const {
+  cartItems,
+  increaseQuantity,
+  decreaseQuantity,
+  clearCart,
+  loggedUser,
+  setLoggedUser,
+} = useCart();
 
   const cartTotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -44,40 +46,56 @@ export default function Panier() {
   function changeLanguage() {
     setLanguage(language === "en" ? "fr" : "en");
   }
-  function validateCart() {
-    if (cartItems.length === 0) return;
+async function validateCart() {
+  if (cartItems.length === 0) return;
 
-    // temporaire jusqu'à brancher vrai login
-    const loggedUser = true;
-
-    // temporaire jusqu'à lire vrai solde du joueur
-    const userSolde = 200;
-
-    if (!loggedUser) {
-      router.push({
-        pathname: "/PanierValide",
-        params: { status: "notLogged" },
-      } as any);
-      return;
-    }
-
-    if (userSolde < cartTotal) {
-      router.push({
-        pathname: "/PanierValide",
-        params: { status: "noMoney" },
-      } as any);
-      return;
-    }
-
-    console.log("Items ajoutés à l'inventaire:", cartItems);
-
-    clearCart();
-
+  if (!loggedUser) {
     router.push({
       pathname: "/PanierValide",
-      params: { status: "success" },
+      params: { status: "notLogged" },
     } as any);
+    return;
   }
+
+  if (loggedUser.solde < cartTotal) {
+    router.push({
+      pathname: "/PanierValide",
+      params: { status: "noMoney" },
+    } as any);
+    return;
+  }
+
+  for (const item of cartItems) {
+    await db.runAsync(
+      `
+      INSERT INTO inventory (user_id, product_id, quantity)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_id, product_id)
+      DO UPDATE SET quantity = quantity + excluded.quantity
+      `,
+      [loggedUser.id, item.id, item.quantity]
+    );
+  }
+
+  const newSolde = loggedUser.solde - cartTotal;
+
+  await db.runAsync(
+    "UPDATE users SET solde = ? WHERE id = ?",
+    [newSolde, loggedUser.id]
+  );
+
+  setLoggedUser({
+    ...loggedUser,
+    solde: newSolde,
+  });
+
+  clearCart();
+
+  router.push({
+    pathname: "/PanierValide",
+    params: { status: "success" },
+  } as any);
+}
 
   return (
     <ImageBackground

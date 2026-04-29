@@ -77,9 +77,9 @@ export default function Index() {
   function getUsername() {
     const user = loggedUser as any;
 
-    if (user?.username) {
-      return user.username;
-    }
+if(user?.username){
+ return user.username;
+}
 
     if (loggedUser?.email) {
       return loggedUser.email.split("@")[0];

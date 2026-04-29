@@ -31,7 +31,7 @@ export default function Inscription() {
   async function handleSignup() {
     setError("");
 
-    if (!email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       setError(inscriptionText.errorRequired[language]);
       return;
     }
@@ -44,18 +44,33 @@ export default function Inscription() {
       return;
     }
 
-    setLoading(true);
+setLoading(true);
 
+const existingUser = await db.getFirstAsync(
+ "SELECT * FROM users WHERE username = ?",
+ [username]
+);
 
+if(existingUser){
+ setError(
+   language==="en"
+    ? "Username already taken."
+    : "Nom d'utilisateur déjà pris."
+ );
+ setLoading(false);
+ return;
+}
 
-    const existing = await db.getFirstAsync(
-    "SELECT * FROM users WHERE email = ?", [email]
-  );
+const existingEmail = await db.getFirstAsync(
+ "SELECT * FROM users WHERE email = ?",
+ [email]
+);
 
-  if (existing) {
-    setError(inscriptionText.errorEmailTaken[language]);
-    return;
-  }
+if(existingEmail){
+ setError(inscriptionText.errorEmailTaken[language]);
+ setLoading(false);
+ return;
+}
 
   await db.runAsync(
     "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
@@ -84,7 +99,18 @@ export default function Inscription() {
       >
         <View style={styles.card}>
           <Text style={styles.title}>{inscriptionText.title[language]}</Text>
-
+          
+          <TextInput
+  style={styles.input}
+  placeholder={
+    language==="en"
+      ? "Username"
+      : "Nom d'utilisateur"
+  }
+  placeholderTextColor="#555"
+  value={username}
+  onChangeText={setUsername}
+/>
           <TextInput
             style={styles.input}
             placeholder={inscriptionText.emailPlaceholder[language]}
