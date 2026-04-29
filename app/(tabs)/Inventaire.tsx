@@ -1,16 +1,18 @@
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Image,
-    ImageBackground,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Image,
+  ImageBackground,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
+import { useCart } from "@/components/PanierContext";
 import db from "../../database";
+
 
 type Language = "en" | "fr";
 
@@ -34,40 +36,47 @@ const images: Record<string, any> = {
   thumb_armor: require("../../assets/images/thumb_armor.png"),
   enchiridion: require("../../assets/images/Enchiridion.png"),
   demon_blood_sword: require("../../assets/images/demon_blood_sword.png"),
+  
 };
 
 export default function Inventaire() {
   const [language, setLanguage] = useState<Language>("fr");
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
 
-  const userId = 1;
+const { loggedUser } = useCart();
+const userId = loggedUser?.id;
 
-  useEffect(() => {
-    loadInventory();
-  }, []);
+useEffect(() => {
+  loadInventory();
+}, [userId]);
 
-  async function loadInventory() {
-    const result = await db.getAllAsync<InventoryItem>(
-      `
-      SELECT 
-        inventory.product_id,
-        inventory.quantity,
-        products.name_en,
-        products.name_fr,
-        products.price,
-        products.image,
-        products.description_en,
-        products.description_fr
-      FROM inventory
-      INNER JOIN products
-      ON inventory.product_id = products.id
-      WHERE inventory.user_id = ?
-      `,
-      [userId]
-    );
-
-    setInventoryItems(result);
+async function loadInventory() {
+  if (!userId) {
+    setInventoryItems([]);
+    return;
   }
+
+  const result = await db.getAllAsync<InventoryItem>(
+    `
+    SELECT 
+      inventory.product_id,
+      inventory.quantity,
+      products.name_en,
+      products.name_fr,
+      products.price,
+      products.image,
+      products.description_en,
+      products.description_fr
+    FROM inventory
+    INNER JOIN products
+    ON inventory.product_id = products.id
+    WHERE inventory.user_id = ?
+    `,
+    [userId]
+  );
+
+  setInventoryItems(result);
+}
 
   function changeLanguage() {
     setLanguage(language === "en" ? "fr" : "en");
