@@ -17,6 +17,7 @@ type LoggedUser = {
   id: number;
   email: string;
   solde: number;
+  role: string; 
 };
 
 type CartContextType = {

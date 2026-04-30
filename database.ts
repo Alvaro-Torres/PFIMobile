@@ -26,6 +26,7 @@ export async function initDatabase() {
 
   await addColumnIfMissing("users", "username", "TEXT");
   await addColumnIfMissing("users", "solde", "REAL DEFAULT 500");
+  await addColumnIfMissing("products", "visible", "INTEGER DEFAULT 1");
 
   await db.execAsync(`
     DROP TABLE IF EXISTS products;
@@ -37,7 +38,8 @@ export async function initDatabase() {
       price REAL NOT NULL,
       image TEXT,
       description_en TEXT,
-      description_fr TEXT
+      description_fr TEXT,
+      visible INTEGER DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS cart (
