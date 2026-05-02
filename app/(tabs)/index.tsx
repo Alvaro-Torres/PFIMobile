@@ -52,16 +52,41 @@ export default function Index() {
   const randomIndex = Math.floor(Math.random() * gooseQuotes.length);
   const randomQuote = gooseQuotes[randomIndex];
 
-  useEffect(() => {
+  const [showHidden, setShowHidden] = useState(false);
+  const [hiddenProducts, setHiddenProducts] = useState<Product[]>([]);
+
+
+    useEffect(() => {
     loadProducts();
+    loadHiddenProducts();
   }, []);
+
+
+  async function loadHiddenProducts() {
+    const result = await db.getAllAsync<Product>(
+      "SELECT * FROM products WHERE visible = 0"
+    );
+    setHiddenProducts(result);
+  }
+
+  async function restoreProduct(id: number) {
+    await db.runAsync("UPDATE products SET visible = 1 WHERE id = ?", [id]);
+    loadProducts();
+    loadHiddenProducts();
+  }
+
 
   async function loadProducts() {
     const result = await db.getAllAsync<Product>(
-      "SELECT id, name_en, name_fr, price, image, description_en, description_fr FROM products"
+      "SELECT * FROM products WHERE visible = 1"
     );
 
     setProducts(result);
+  }
+
+  async function hideProduct(id: number) {
+    await db.runAsync("UPDATE products SET visible = 0 WHERE id = ?", [id]);
+    loadProducts();
   }
 
   function startMusic() {
@@ -77,9 +102,9 @@ export default function Index() {
   function getUsername() {
     const user = loggedUser as any;
 
-if(user?.username){
- return user.username;
-}
+    if (user?.username) {
+      return user.username;
+    }
 
     if (loggedUser?.email) {
       return loggedUser.email.split("@")[0];
@@ -87,6 +112,8 @@ if(user?.username){
 
     return language === "en" ? "The Deer" : "Le Cerf";
   }
+
+
 
   function showItems() {
     const itemViews = [];
@@ -121,6 +148,15 @@ if(user?.username){
               style={styles.goldIcon}
             />
 
+            {loggedUser?.role === "admin" && (
+              <Pressable
+                style={styles.hideButton}
+                onPress={() => hideProduct(item.id)}
+              >
+                <Text style={styles.hideButtonText}>−</Text>
+              </Pressable>
+            )}
+
             <Text style={styles.itemPrice}>{item.price}</Text>
           </View>
         </View>
@@ -139,6 +175,48 @@ if(user?.username){
       <Pressable style={styles.musicButton} onPress={startMusic}>
         <Text style={styles.musicButtonText}>♪</Text>
       </Pressable>
+
+      {loggedUser?.role === "admin" && (
+        <Pressable
+          style={styles.addButton}
+          onPress={() => setShowHidden(true)}
+        >
+          <Text style={styles.addButtonText}>+</Text>
+        </Pressable>
+      )}
+
+      {/* Modal showing hidden products */}
+      {showHidden && (
+        <View style={styles.modal}>
+          <Text style={styles.modalTitle}>
+            {language === "en" ? "Hidden Products" : "Produits cachés"}
+          </Text>
+
+          {hiddenProducts.map((product) => (
+            <View key={product.id} style={styles.modalRow}>
+              <Text style={styles.modalItemName}>
+                {language === "en" ? product.name_en : product.name_fr}
+              </Text>
+
+              <Pressable
+                style={styles.restoreButton}
+                onPress={() => restoreProduct(product.id)}
+              >
+                <Text style={styles.restoreButtonText}>+</Text>
+              </Pressable>
+            </View>
+          ))}
+
+          <Pressable
+            style={styles.closeButton}
+            onPress={() => setShowHidden(false)}
+          >
+            <Text style={styles.closeButtonText}>
+              {language === "en" ? "Close" : "Fermer"}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scroll}
@@ -391,4 +469,73 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "black",
   },
+  hideButton: {
+  marginTop: 6,
+  backgroundColor: "#ffb3b3",
+  borderWidth: 2,
+  borderColor: "black",
+  borderRadius: 15,
+  paddingVertical: 4,
+  paddingHorizontal: 12,
+},
+hideButtonText: { fontSize: 20, fontWeight: "900" },
+addButton: {
+  position: "absolute",
+  top: 15,
+  left: 15,
+  zIndex: 10,
+  backgroundColor: "#b8f7ff",
+  borderWidth: 2,
+  borderColor: "black",
+  borderRadius: 20,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+},
+addButtonText: { fontSize: 20, fontWeight: "900" },
+modal: {
+  position: "absolute",
+  top: "20%",
+  left: "5%",
+  right: "5%",
+  backgroundColor: "rgba(255,248,214,0.97)",
+  borderWidth: 4,
+  borderColor: "black",
+  borderRadius: 30,
+  padding: 20,
+  zIndex: 20,
+  alignItems: "center",
+},
+modalTitle: { fontSize: 22, fontWeight: "900", marginBottom: 15 },
+modalRow: {
+  width: "100%",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  backgroundColor: "white",
+  borderWidth: 3,
+  borderColor: "black",
+  borderRadius: 18,
+  padding: 12,
+  marginBottom: 10,
+},
+modalItemName: { fontSize: 15, fontWeight: "900", flex: 1, marginRight: 10 },
+restoreButton: {
+  backgroundColor: "#b8f7ff",
+  borderWidth: 2,
+  borderColor: "black",
+  borderRadius: 15,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+},
+restoreButtonText: { fontSize: 18, fontWeight: "900" },
+closeButton: {
+  marginTop: 10,
+  backgroundColor: "white",
+  borderWidth: 3,
+  borderColor: "black",
+  borderRadius: 20,
+  paddingVertical: 8,
+  paddingHorizontal: 18,
+},
+closeButtonText: { fontSize: 15, fontWeight: "900" },
 });

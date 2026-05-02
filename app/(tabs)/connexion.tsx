@@ -60,6 +60,7 @@ export default function Connexion() {
       id: user.id,
       email: user.email,
       solde: user.solde ?? 500,
+      role: user.role,
     });
 
     router.push("/");
