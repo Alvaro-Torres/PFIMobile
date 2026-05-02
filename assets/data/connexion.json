@@ -1,31 +1,25 @@
-{
-  "title": {
-    "en": "Login",
-    "fr": "Connexion"
-  },
+[
+ {
+   "Id":1,
+   "Usager":"salah",
+   "Password":"1234",
+   "Nom":"Salah Mehdi",
+   "Courriel":"salah@goonle.edu"
+ },
 
-  "usernamePlaceholder": {
-    "en": "Email or Username",
-    "fr": "Courriel ou nom d'usager"
-  },
+ {
+   "Id":2,
+   "Usager":"diddy",
+   "Password":"1234",
+   "Nom":"Sean Diddy",
+   "Courriel":"diddy@goonle.edu"
+ },
 
-  "passwordPlaceholder": {
-    "en": "Password",
-    "fr": "Mot de passe"
-  },
-
-  "loginButton": {
-    "en": "Log In",
-    "fr": "Connexion"
-  },
-
-  "signupButton": {
-    "en": "Sign Up",
-    "fr": "S'inscrire"
-  },
-
-  "backButton": {
-    "en": "Back to Shop",
-    "fr": "Retour au magasin"
-  }
-}
+ {
+   "Id":3,
+   "Usager":"registrariat",
+   "Password":"1234",
+   "Nom":"Registrariat",
+   "Courriel":"admin@goonle.edu"
+ }
+]
