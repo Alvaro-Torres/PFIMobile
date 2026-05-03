@@ -34,8 +34,11 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
-    initDatabase();
-  }, []);
+  async function init() {
+    await initDatabase();
+  }
+  init();
+}, []);
 
   if (!loaded) {
     return null;

@@ -1,0 +1,31 @@
+{
+  "title": {
+    "en": "Login",
+    "fr": "Connexion"
+  },
+
+  "usernamePlaceholder": {
+    "en": "Email or Username",
+    "fr": "Courriel ou nom d'usager"
+  },
+
+  "passwordPlaceholder": {
+    "en": "Password",
+    "fr": "Mot de passe"
+  },
+
+  "loginButton": {
+    "en": "Log In",
+    "fr": "Connexion"
+  },
+
+  "signupButton": {
+    "en": "Sign Up",
+    "fr": "S'inscrire"
+  },
+
+  "backButton": {
+    "en": "Back to Shop",
+    "fr": "Retour au magasin"
+  }
+}

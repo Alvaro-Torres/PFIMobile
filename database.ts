@@ -1,6 +1,7 @@
 import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabaseSync("pfimobile.db");
+//nouv database pour wipe les donnees d'avant pcq il y avait des erreurs de login avec les usernames et produits qui n'existaient pas
+const db = SQLite.openDatabaseSync("pfimobile5.db");
 
 async function addColumnIfMissing(table: string, column: string, definition: string) {
   try {
@@ -10,56 +11,62 @@ async function addColumnIfMissing(table: string, column: string, definition: str
   }
 }
 
+//PRAGMA Active la vérification des clés étrangères (désactivée par défaut dans SQLite)
+//pour garantir l'intégrité référentielle entre les tables (ex: supprimer les produits du panier si un produit est supprimé)
 export async function initDatabase() {
+
+
+
+  await db.execAsync(`PRAGMA foreign_keys = ON;`);
+
   await db.execAsync(`
-    PRAGMA foreign_keys = ON;
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'user',
+    solde REAL DEFAULT 500
+  );
+`);
 
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL,
-      role TEXT DEFAULT 'user',
-      solde REAL DEFAULT 500
-    );
-  `);
+  await db.execAsync(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name_en TEXT NOT NULL,
+    name_fr TEXT NOT NULL,
+    price REAL NOT NULL,
+    image TEXT,
+    description_en TEXT,
+    description_fr TEXT,
+    visible INTEGER DEFAULT 1
+  );
+`);
 
+  await db.execAsync(`
+  CREATE TABLE IF NOT EXISTS cart (
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (user_id, product_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+  );
+`);
+
+  await db.execAsync(`
+  CREATE TABLE IF NOT EXISTS inventory (
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (user_id, product_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+  );
+`);
   await addColumnIfMissing("users", "username", "TEXT");
   await addColumnIfMissing("users", "solde", "REAL DEFAULT 500");
   await addColumnIfMissing("products", "visible", "INTEGER DEFAULT 1");
-
-  await db.execAsync(`
-    DROP TABLE IF EXISTS products;
-
-    CREATE TABLE products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name_en TEXT NOT NULL,
-      name_fr TEXT NOT NULL,
-      price REAL NOT NULL,
-      image TEXT,
-      description_en TEXT,
-      description_fr TEXT,
-      visible INTEGER DEFAULT 1
-    );
-
-    CREATE TABLE IF NOT EXISTS cart (
-      user_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      PRIMARY KEY (user_id, product_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS inventory (
-      user_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      PRIMARY KEY (user_id, product_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    );
-  `);
 
   const admin = await db.getFirstAsync(
     "SELECT * FROM users WHERE role = 'admin'"
@@ -70,6 +77,30 @@ export async function initDatabase() {
       "INSERT INTO users (username, email, password, role, solde) VALUES (?, ?, ?, ?, ?)",
       ["admin", "admin@pfi.com", "admin123", "admin", 9999]
     );
+  }
+
+  // Utilisateurs par défaut à insérer au démarrage
+  const defaultUsers = [
+    ["salah", "salah@goonle.edu", "1234", "user", 500],
+    ["diddy", "diddy@goonle.edu", "1234", "user", 500],
+    ["alvaro", "alvaro@goonle.edu", "1234", "user", 6767],
+  ];
+
+  // Pour chaque utilisateur par défaut
+  for (const u of defaultUsers) {
+    // Vérifier s'il existe déjà dans la base de données
+    const existing = await db.getFirstAsync(
+      "SELECT * FROM users WHERE email = ?",
+      [u[1]]
+    );
+
+    // S'il n'existe pas, on l'insère
+    if (!existing) {
+      await db.runAsync(
+        "INSERT INTO users (username, email, password, role, solde) VALUES (?, ?, ?, ?, ?)",
+        u
+      );
+    }
   }
 
   const products = [
@@ -83,11 +114,18 @@ export async function initDatabase() {
     ["Demon Blood Sword", "Épée sanguinaire de démon", 500, "demon_blood_sword", "A powerful demonic sword.", "Une puissante épée démoniaque."]
   ];
 
-  for (const product of products) {
-    await db.runAsync(
-      "INSERT INTO products (name_en, name_fr, price, image, description_en, description_fr) VALUES (?, ?, ?, ?, ?, ?)",
-      product
-    );
+  // Insérer les produits seulement s'il n'en existe pas encore
+  const existingProducts = await db.getFirstAsync(
+    "SELECT * FROM products WHERE name_en = 'Finn''s Sword'"
+  );
+
+  if (!existingProducts) {
+    for (const product of products) {
+      await db.runAsync(
+        "INSERT INTO products (name_en, name_fr, price, image, description_en, description_fr) VALUES (?, ?, ?, ?, ?, ?)",
+        product
+      );
+    }
   }
 }
 

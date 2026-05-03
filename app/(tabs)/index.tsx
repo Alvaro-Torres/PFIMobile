@@ -56,7 +56,7 @@ export default function Index() {
   const [hiddenProducts, setHiddenProducts] = useState<Product[]>([]);
 
 
-    useEffect(() => {
+  useEffect(() => {
     loadProducts();
     loadHiddenProducts();
   }, []);
@@ -87,6 +87,7 @@ export default function Index() {
   async function hideProduct(id: number) {
     await db.runAsync("UPDATE products SET visible = 0 WHERE id = ?", [id]);
     loadProducts();
+    loadHiddenProducts();
   }
 
   function startMusic() {
@@ -148,7 +149,9 @@ export default function Index() {
               style={styles.goldIcon}
             />
 
-            {loggedUser?.role === "admin" && (
+            <Text style={styles.itemPrice}>{item.price}</Text>
+          </View>
+          {loggedUser?.role === "admin" && (
               <Pressable
                 style={styles.hideButton}
                 onPress={() => hideProduct(item.id)}
@@ -156,9 +159,6 @@ export default function Index() {
                 <Text style={styles.hideButtonText}>−</Text>
               </Pressable>
             )}
-
-            <Text style={styles.itemPrice}>{item.price}</Text>
-          </View>
         </View>
       );
     }
@@ -175,15 +175,6 @@ export default function Index() {
       <Pressable style={styles.musicButton} onPress={startMusic}>
         <Text style={styles.musicButtonText}>♪</Text>
       </Pressable>
-
-      {loggedUser?.role === "admin" && (
-        <Pressable
-          style={styles.addButton}
-          onPress={() => setShowHidden(true)}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </Pressable>
-      )}
 
       {/* Modal showing hidden products */}
       {showHidden && (
@@ -229,6 +220,15 @@ export default function Index() {
           onLanguageChange={changeLanguage}
         />
 
+        {loggedUser?.role === "admin" && (
+        <Pressable
+          style={styles.addButton}
+          onPress={() => setShowHidden(true)}
+        >
+          <Text style={styles.addButtonText}>+</Text>
+        </Pressable>
+      )}
+
         <View style={styles.grid}>
           {products.length === 0 ? (
             <Text style={styles.emptyText}>
@@ -244,6 +244,9 @@ export default function Index() {
         {loggedUser ? (
           <View style={styles.profileCard}>
             <Text style={styles.profileName}>{getUsername()}</Text>
+
+            {/* Test  */}
+            <Text>{loggedUser?.role}</Text>
 
             <View style={styles.soldeRow}>
               <Image
@@ -470,72 +473,76 @@ const styles = StyleSheet.create({
     color: "black",
   },
   hideButton: {
-  marginTop: 6,
-  backgroundColor: "#ffb3b3",
-  borderWidth: 2,
-  borderColor: "black",
-  borderRadius: 15,
-  paddingVertical: 4,
-  paddingHorizontal: 12,
-},
-hideButtonText: { fontSize: 20, fontWeight: "900" },
-addButton: {
-  position: "absolute",
-  top: 15,
-  left: 15,
-  zIndex: 10,
-  backgroundColor: "#b8f7ff",
-  borderWidth: 2,
-  borderColor: "black",
-  borderRadius: 20,
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-},
-addButtonText: { fontSize: 20, fontWeight: "900" },
-modal: {
-  position: "absolute",
-  top: "20%",
-  left: "5%",
-  right: "5%",
-  backgroundColor: "rgba(255,248,214,0.97)",
-  borderWidth: 4,
-  borderColor: "black",
-  borderRadius: 30,
-  padding: 20,
-  zIndex: 20,
-  alignItems: "center",
-},
-modalTitle: { fontSize: 22, fontWeight: "900", marginBottom: 15 },
-modalRow: {
-  width: "100%",
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  backgroundColor: "white",
-  borderWidth: 3,
-  borderColor: "black",
-  borderRadius: 18,
-  padding: 12,
-  marginBottom: 10,
-},
-modalItemName: { fontSize: 15, fontWeight: "900", flex: 1, marginRight: 10 },
-restoreButton: {
-  backgroundColor: "#b8f7ff",
-  borderWidth: 2,
-  borderColor: "black",
-  borderRadius: 15,
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-},
-restoreButtonText: { fontSize: 18, fontWeight: "900" },
-closeButton: {
+    marginTop: 6,
+    backgroundColor: "#ffb3b3",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 15,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+
+  hideButtonText: { 
+    fontSize: 20,
+    fontWeight: "900" 
+  },
+
+  addButton: {
+  alignSelf: "flex-start",
+  marginLeft: 15,
   marginTop: 10,
-  backgroundColor: "white",
-  borderWidth: 3,
+  backgroundColor: "#b8f7ff",
+  borderWidth: 2,
   borderColor: "black",
   borderRadius: 20,
-  paddingVertical: 8,
-  paddingHorizontal: 18,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
 },
-closeButtonText: { fontSize: 15, fontWeight: "900" },
+  addButtonText: { fontSize: 20, fontWeight: "900" },
+  modal: {
+    position: "absolute",
+    top: "20%",
+    left: "5%",
+    right: "5%",
+    backgroundColor: "rgba(255,248,214,0.97)",
+    borderWidth: 4,
+    borderColor: "black",
+    borderRadius: 30,
+    padding: 20,
+    zIndex: 20,
+    alignItems: "center",
+  },
+  modalTitle: { fontSize: 22, fontWeight: "900", marginBottom: 15 },
+  modalRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 18,
+    padding: 12,
+    marginBottom: 10,
+  },
+  modalItemName: { fontSize: 15, fontWeight: "900", flex: 1, marginRight: 10 },
+  restoreButton: {
+    backgroundColor: "#b8f7ff",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 15,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  restoreButtonText: { fontSize: 18, fontWeight: "900" },
+  closeButton: {
+    marginTop: 10,
+    backgroundColor: "white",
+    borderWidth: 3,
+    borderColor: "black",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+  },
+  closeButtonText: { fontSize: 15, fontWeight: "900" },
 });

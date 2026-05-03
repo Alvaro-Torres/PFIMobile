@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-import connexionText from "../../assets/data/connexion.json";
+import connexionText from "../../assets/data/connexionButtons.json";
 import { useCart } from "../../components/PanierContext";
 import db from "../../database";
 
@@ -39,12 +39,17 @@ export default function Connexion() {
     setLanguage(language === "en" ? "fr" : "en");
   }
 
+
+
   async function handleLogin() {
     setError("");
 
+
+    // Connexion avec courriel ou nom d'utilisateur
+    // Le courriel est passé deux fois : une fois pour vérifier le courriel, une fois pour vérifier le nom d'utilisateur
     const user = await db.getFirstAsync<User>(
-      "SELECT * FROM users WHERE email = ? AND password = ?",
-      [email, password]
+      "SELECT * FROM users WHERE (email = ? OR username = ?) AND password = ?",
+      [email, email, password]
     );
 
     if (!user) {
