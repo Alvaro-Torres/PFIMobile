@@ -34,6 +34,13 @@ export default function TabLayout() {
           href: null,
         }}
       />
+
+      <Tabs.Screen
+        name="entrepots"
+        options={{
+          href: null, // cache la tab comme les autres
+        }}
+      />
     </Tabs>
   );
 }

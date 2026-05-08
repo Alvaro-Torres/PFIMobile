@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "nom": "Entrepôt Atwater",
+    "latitude": 45.4751,
+    "longitude": -73.5772
+  },
+  {
+    "id": 2,
+    "nom": "Entrepôt Jean-Talon",
+    "latitude": 45.5361,
+    "longitude": -73.6142
+  },
+  {
+    "id": 3,
+    "nom": "Entrepôt Vieux-Port",
+    "latitude": 45.5048,
+    "longitude": -73.5537
+  },
+  {
+    "id": 4,
+    "nom": "Entrepôt Laval",
+    "latitude": 45.6066,
+    "longitude": -73.7124
+  },
+  {
+    "id": 5,
+    "nom": "Entrepôt Longueuil",
+    "latitude": 45.5315,
+    "longitude": -73.5182
+  }
+]

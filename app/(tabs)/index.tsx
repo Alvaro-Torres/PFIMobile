@@ -152,13 +152,13 @@ export default function Index() {
             <Text style={styles.itemPrice}>{item.price}</Text>
           </View>
           {loggedUser?.role === "admin" && (
-              <Pressable
-                style={styles.hideButton}
-                onPress={() => hideProduct(item.id)}
-              >
-                <Text style={styles.hideButtonText}>−</Text>
-              </Pressable>
-            )}
+            <Pressable
+              style={styles.hideButton}
+              onPress={() => hideProduct(item.id)}
+            >
+              <Text style={styles.hideButtonText}>−</Text>
+            </Pressable>
+          )}
         </View>
       );
     }
@@ -221,13 +221,13 @@ export default function Index() {
         />
 
         {loggedUser?.role === "admin" && (
-        <Pressable
-          style={styles.addButton}
-          onPress={() => setShowHidden(true)}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </Pressable>
-      )}
+          <Pressable
+            style={styles.addButton}
+            onPress={() => setShowHidden(true)}
+          >
+            <Text style={styles.addButtonText}>+</Text>
+          </Pressable>
+        )}
 
         <View style={styles.grid}>
           {products.length === 0 ? (
@@ -277,6 +277,14 @@ export default function Index() {
             </Pressable>
           </Link>
         )}
+        <Pressable
+          style={styles.connexionButton}
+          onPress={() => router.push("/entrepots")}
+        >
+          <Text style={styles.connexionButtonText}>
+            {language === "en" ? "Warehouses" : "Entrepôts"}
+          </Text>
+        </Pressable>
       </ScrollView>
     </ImageBackground>
   );
@@ -482,22 +490,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
 
-  hideButtonText: { 
+  hideButtonText: {
     fontSize: 20,
-    fontWeight: "900" 
+    fontWeight: "900"
   },
 
   addButton: {
-  alignSelf: "flex-start",
-  marginLeft: 15,
-  marginTop: 10,
-  backgroundColor: "#b8f7ff",
-  borderWidth: 2,
-  borderColor: "black",
-  borderRadius: 20,
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-},
+    alignSelf: "flex-start",
+    marginLeft: 15,
+    marginTop: 10,
+    backgroundColor: "#b8f7ff",
+    borderWidth: 2,
+    borderColor: "black",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
   addButtonText: { fontSize: 20, fontWeight: "900" },
   modal: {
     position: "absolute",
