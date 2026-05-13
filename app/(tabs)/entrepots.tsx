@@ -14,6 +14,7 @@ import entrepotsData from "../../assets/data/entrepots.json";
 
 type Language = "en" | "fr";
 
+// Type représentant un entrepôt avec ses coordonnées
 type Entrepot = {
     id: number;
     nom: string;
@@ -21,7 +22,7 @@ type Entrepot = {
     longitude: number;
 };
 
-// Localisation fixe de la maison (remplace expo-location)
+// Localisation fixe de la maison 
 const maison = {
     latitude: 45.5017,
     longitude: -73.5673,
@@ -29,48 +30,56 @@ const maison = {
 
 export default function Entrepots() {
     const [language, setLanguage] = useState<Language>("fr");
+
+    // Garde en mémoire l'id de l'entrepôt sélectionné (null = aucun sélectionné)
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
+    // Sélectionne l'entrepôt cliqué, ou le désélectionne s'il était déjà actif
     function handleSelect(id: number) {
-        // Allume l'entrepôt si non sélectionné, éteint si déjà sélectionné
         setSelectedId(selectedId === id ? null : id);
     }
 
+    // Récupère les coordonnées du chemin vers l'entrepôt depuis chemins.json
     function getPath(id: number) {
-        // Récupère les coordonnées du chemin depuis le fichier JSON
+        // id est un nombre (venant du JSON entrepots) mais les clés de chemins.json sont des strings,
+        // donc on convertit avec String() pour que ça corresponde ex: 1 → "1"
         const key = String(id) as keyof typeof chemins;
         return chemins[key];
     }
 
     return (
+        // Disposition horizontale: 25% liste, 75% carte
         <View style={styles.container}>
 
-            {/* 25% — liste des entrepôts */}
+            {/* 25% liste des entrepôts à gauche */}
             <View style={styles.liste}>
                 <Text style={styles.listeTitle}>
                     {language === "en" ? "Warehouses" : "Entrepôts"}
                 </Text>
 
                 <ScrollView>
-                    {entrepotsData.map((e: Entrepot) => (
+                    {/* Bouton pour chaque entrepôt, devient bleu si sélectionné */}
+                    {entrepotsData.map((entrep: Entrepot) => (
                         <Pressable
-                            key={e.id}
+                            key={entrep.id}
                             style={[
                                 styles.listeItem,
-                                selectedId === e.id && styles.listeItemSelected,
+                                selectedId === entrep.id && styles.listeItemSelected,
                             ]}
-                            onPress={() => handleSelect(e.id)}
+                            onPress={() => handleSelect(entrep.id)}
                         >
                             <Text
                                 style={[
                                     styles.listeItemText,
-                                    selectedId === e.id && styles.listeItemTextSelected,
+                                    selectedId === entrep.id && styles.listeItemTextSelected,
                                 ]}
                             >
-                                {e.nom}
+                                {entrep.nom}
                             </Text>
                         </Pressable>
                     ))}
+
+                    {/* Bouton retour vers la page principale */}
                     <Pressable
                         style={styles.listeItem}
                         onPress={() => router.push("/")}
@@ -81,6 +90,7 @@ export default function Entrepots() {
                     </Pressable>
                 </ScrollView>
 
+                {/* Bouton pour changer la langue */}
                 <Pressable
                     style={styles.languageButton}
                     onPress={() => setLanguage(language === "en" ? "fr" : "en")}
@@ -91,10 +101,11 @@ export default function Entrepots() {
                 </Pressable>
             </View>
 
-            {/* 75% — la carte */}
+            {/* 75%  la carte à droite */}
             <View style={styles.carte}>
                 <MapView
                     style={styles.map}
+                    // Région initiale centrée sur Montréal
                     initialRegion={{
                         latitude: 45.5200,
                         longitude: -73.6000,
@@ -102,44 +113,44 @@ export default function Entrepots() {
                         longitudeDelta: 0.2,
                     }}
                 >
-                    {/* Icône maison */}
+                    {/* Marqueur vert pour la maison */}
                     <Marker
                         coordinate={maison}
                         title={language === "en" ? "Home" : "Maison"}
                         pinColor="green"
                     />
 
-                    {/* Marqueurs des entrepôts */}
-                    {entrepotsData.map((e: Entrepot) => (
+                    {/* Marqueurs rouges pour les entrepôts, bleu si sélectionné */}
+                    {entrepotsData.map((entrep: Entrepot) => (
                         <Marker
-                            key={e.id}
-                            coordinate={{ latitude: e.latitude, longitude: e.longitude }}
-                            title={e.nom}
-                            pinColor={selectedId === e.id ? "blue" : "red"}
-                            onPress={() => handleSelect(e.id)}
+                            key={entrep.id}
+                            coordinate={{ latitude: entrep.latitude, longitude: entrep.longitude }}
+                            title={entrep.nom}
+                            pinColor={selectedId === entrep.id ? "blue" : "red"}
+                            onPress={() => handleSelect(entrep.id)}
                         />
                     ))}
 
-                    {/* Cercle de 5km autour de chaque entrepôt */}
-                    {entrepotsData.map((e: Entrepot) => (
+                    {/* Cercle de 5km autour de chaque entrepôt, bleu si sélectionné */}
+                    {entrepotsData.map((entrep: Entrepot) => (
                         <Circle
-                            key={e.id}
-                            center={{ latitude: e.latitude, longitude: e.longitude }}
+                            key={entrep.id}
+                            center={{ latitude: entrep.latitude, longitude: entrep.longitude }}
                             radius={5000}
                             strokeColor={
-                                selectedId === e.id
+                                selectedId === entrep.id
                                     ? "rgba(0,100,255,0.8)"
                                     : "rgba(255,0,0,0.3)"
                             }
                             fillColor={
-                                selectedId === e.id
+                                selectedId === entrep.id
                                     ? "rgba(0,100,255,0.15)"
                                     : "rgba(255,0,0,0.05)"
                             }
                         />
                     ))}
 
-                    {/* Chemin tracé vers l'entrepôt sélectionné */}
+                    {/* Chemin tracé en bleu de la maison vers l'entrepôt sélectionné */}
                     {selectedId && (
                         <Polyline
                             coordinates={getPath(selectedId)}
@@ -154,12 +165,13 @@ export default function Entrepots() {
 }
 
 const styles = StyleSheet.create({
+    // Conteneur principal horizontal (liste + carte côte à côte)
     container: {
         flex: 1,
         flexDirection: "row",
     },
 
-    // 25% liste
+    // 25% liste à gauche
     liste: {
         flex: 0.25,
         backgroundColor: "rgba(255,248,214,0.97)",
@@ -217,11 +229,12 @@ const styles = StyleSheet.create({
         fontWeight: "900",
     },
 
-    // 75% carte
+    // 75% carte à droite
     carte: {
         flex: 0.75,
     },
 
+    // La carte prend tout l'espace disponible
     map: {
         flex: 1,
     },

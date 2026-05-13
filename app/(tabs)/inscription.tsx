@@ -1,4 +1,4 @@
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   ImageBackground,
@@ -22,6 +22,7 @@ export default function Inscription() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  // État pour désactiver le bouton pendant l'inscription
   const [loading, setLoading] = useState(false);
 
   function changeLanguage() {
@@ -31,54 +32,63 @@ export default function Inscription() {
   async function handleSignup() {
     setError("");
 
+    // Vérification que tous les champs sont remplis
     if (!username || !email || !password || !confirmPassword) {
       setError(inscriptionText.errorRequired[language]);
       return;
     }
+
+    // Vérification du format du courriel
     if (!email.includes("@")) {
       setError(inscriptionText.errorEmail[language]);
       return;
     }
+
+    // Vérification que les deux mots de passe correspondent
     if (password !== confirmPassword) {
       setError(inscriptionText.errorPassword[language]);
       return;
     }
 
-setLoading(true);
+    setLoading(true);
 
-const existingUser = await db.getFirstAsync(
- "SELECT * FROM users WHERE username = ?",
- [username]
-);
+    // Vérification que le nom d'utilisateur n'est pas déjà pris
+    const existingUser = await db.getFirstAsync(
+      "SELECT * FROM users WHERE username = ?",
+      [username]
+    );
 
-if(existingUser){
- setError(
-   language==="en"
-    ? "Username already taken."
-    : "Nom d'utilisateur déjà pris."
- );
- setLoading(false);
- return;
-}
+    if (existingUser) {
+      setError(
+        language === "en"
+          ? "Username already taken."
+          : "Nom d'utilisateur déjà pris."
+      );
+      setLoading(false);
+      return;
+    }
 
-const existingEmail = await db.getFirstAsync(
- "SELECT * FROM users WHERE email = ?",
- [email]
-);
+    // Vérification que le courriel n'est pas déjà utilisé
+    const existingEmail = await db.getFirstAsync(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
 
-if(existingEmail){
- setError(inscriptionText.errorEmailTaken[language]);
- setLoading(false);
- return;
-}
+    if (existingEmail) {
+      setError(inscriptionText.errorEmailTaken[language]);
+      setLoading(false);
+      return;
+    }
 
-  await db.runAsync(
-    "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-    [username, email, password, "user"]
-  );
+    // Insertion du nouvel utilisateur dans la base de données
+    await db.runAsync(
+      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
+      [username, email, password, "user"]
+    );
 
-  setLoading(false);
-  router.push("/connexion");
+    setLoading(false);
+    // Redirection vers la page de connexion après l'inscription
+    router.push("/connexion");
   }
 
   return (
@@ -99,18 +109,20 @@ if(existingEmail){
       >
         <View style={styles.card}>
           <Text style={styles.title}>{inscriptionText.title[language]}</Text>
-          
+
+          {/* Champs du formulaire d'inscription */}
           <TextInput
-  style={styles.input}
-  placeholder={
-    language==="en"
-      ? "Username"
-      : "Nom d'utilisateur"
-  }
-  placeholderTextColor="#555"
-  value={username}
-  onChangeText={setUsername}
-/>
+            style={styles.input}
+            placeholder={
+              language === "en"
+                ? "Username"
+                : "Nom d'utilisateur"
+            }
+            placeholderTextColor="#555"
+            value={username}
+            onChangeText={setUsername}
+          />
+
           <TextInput
             style={styles.input}
             placeholder={inscriptionText.emailPlaceholder[language]}
@@ -139,8 +151,10 @@ if(existingEmail){
             onChangeText={setConfirmPassword}
           />
 
+          {/* Affiche le message d'erreur s'il y en a un */}
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
+          {/* Bouton désactivé pendant le chargement pour éviter les doubles soumissions */}
           <Pressable
             style={styles.mainButton}
             onPress={handleSignup}
@@ -154,13 +168,16 @@ if(existingEmail){
           </Pressable>
         </View>
 
-        <Link href="/connexion" asChild>
-          <Pressable style={styles.backButton}>
-            <Text style={styles.backButtonText}>
-              {inscriptionText.backButton[language]}
-            </Text>
-          </Pressable>
-        </Link>
+        {/* Bouton retour vers la page de connexion */}
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.push("/connexion")}
+        >
+          <Text style={styles.backButtonText}>
+            {inscriptionText.backButton[language]}
+          </Text>
+        </Pressable>
+
       </ScrollView>
     </ImageBackground>
   );
