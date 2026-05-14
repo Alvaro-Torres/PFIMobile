@@ -13,6 +13,7 @@ import {
 import panierText from "../../assets/data/panier.json";
 import { useCart } from "../../components/PanierContext";
 import db from "../../database";
+
 type Language = "en" | "fr";
 
 const images: Record<string, any> = {
@@ -22,21 +23,21 @@ const images: Record<string, any> = {
   billy_sword: require("../../assets/images/billy_sword.png"),
   jakes_sandwich: require("../../assets/images/jakes_sandwich.png"),
   thumb_armor: require("../../assets/images/thumb_armor.png"),
-  Enchiridion: require("../../assets/images/Enchiridion.png"),
+  enchiridion: require("../../assets/images/Enchiridion.png"),
   demon_blood_sword: require("../../assets/images/demon_blood_sword.png"),
 };
 
 export default function Panier() {
   const [language, setLanguage] = useState<Language>("en");
 
-const {
-  cartItems,
-  increaseQuantity,
-  decreaseQuantity,
-  clearCart,
-  loggedUser,
-  setLoggedUser,
-} = useCart();
+  const {
+    cartItems,
+    increaseQuantity,
+    decreaseQuantity,
+    clearCart,
+    loggedUser,
+    setLoggedUser,
+  } = useCart();
 
   const cartTotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -46,56 +47,57 @@ const {
   function changeLanguage() {
     setLanguage(language === "en" ? "fr" : "en");
   }
-async function validateCart() {
-  if (cartItems.length === 0) return;
 
-  if (!loggedUser) {
+  async function validateCart() {
+    if (cartItems.length === 0) return;
+
+    if (!loggedUser) {
+      router.push({
+        pathname: "/PanierValide",
+        params: { status: "notLogged" },
+      } as any);
+      return;
+    }
+
+    if (loggedUser.solde < cartTotal) {
+      router.push({
+        pathname: "/PanierValide",
+        params: { status: "noMoney" },
+      } as any);
+      return;
+    }
+
+    for (const item of cartItems) {
+      await db.runAsync(
+        `
+        INSERT INTO inventory (user_id, product_id, quantity)
+        VALUES (?, ?, ?)
+        ON CONFLICT(user_id, product_id)
+        DO UPDATE SET quantity = quantity + excluded.quantity
+        `,
+        [loggedUser.id, item.id, item.quantity]
+      );
+    }
+
+    const newSolde = loggedUser.solde - cartTotal;
+
+    await db.runAsync("UPDATE users SET solde = ? WHERE id = ?", [
+      newSolde,
+      loggedUser.id,
+    ]);
+
+    setLoggedUser({
+      ...loggedUser,
+      solde: newSolde,
+    });
+
+    clearCart();
+
     router.push({
       pathname: "/PanierValide",
-      params: { status: "notLogged" },
+      params: { status: "success" },
     } as any);
-    return;
   }
-
-  if (loggedUser.solde < cartTotal) {
-    router.push({
-      pathname: "/PanierValide",
-      params: { status: "noMoney" },
-    } as any);
-    return;
-  }
-
-  for (const item of cartItems) {
-    await db.runAsync(
-      `
-      INSERT INTO inventory (user_id, product_id, quantity)
-      VALUES (?, ?, ?)
-      ON CONFLICT(user_id, product_id)
-      DO UPDATE SET quantity = quantity + excluded.quantity
-      `,
-      [loggedUser.id, item.id, item.quantity]
-    );
-  }
-
-  const newSolde = loggedUser.solde - cartTotal;
-
-  await db.runAsync(
-    "UPDATE users SET solde = ? WHERE id = ?",
-    [newSolde, loggedUser.id]
-  );
-
-  setLoggedUser({
-    ...loggedUser,
-    solde: newSolde,
-  });
-
-  clearCart();
-
-  router.push({
-    pathname: "/PanierValide",
-    params: { status: "success" },
-  } as any);
-}
 
   return (
     <ImageBackground
@@ -125,42 +127,33 @@ async function validateCart() {
                 <View key={item.id} style={styles.itemCard}>
                   <Text style={styles.itemName}>{item.name[language]}</Text>
 
-                  <View style={styles.itemRow}>
-                    <View style={styles.itemBubble}>
-                      <Image
-                        source={images[item.image]}
-                        style={styles.itemImage}
-                      />
-                    </View>
-
-                    <View style={styles.quantitySection}>
-                      <View style={styles.quantityRow}>
-                        <Pressable
-                          style={styles.quantityButton}
-                          onPress={() => decreaseQuantity(item.id)}
-                        >
-                          <Text style={styles.quantityButtonText}>-</Text>
-                        </Pressable>
-
-                        <View style={styles.quantityBox}>
-                          <Text style={styles.quantityText}>
-                            {item.quantity}
-                          </Text>
-                        </View>
-
-                        <Pressable
-                          style={styles.quantityButton}
-                          onPress={() => increaseQuantity(item.id)}
-                        >
-                          <Text style={styles.quantityButtonText}>+</Text>
-                        </Pressable>
-                      </View>
-
-                      <Text style={styles.itemTotal}>
-                        {panierText.itemTotal[language]} : {itemTotal}
-                      </Text>
-                    </View>
+                  <View style={styles.itemBubble}>
+                    <Image source={images[item.image]} style={styles.itemImage} />
                   </View>
+
+                  <View style={styles.quantityRow}>
+                    <Pressable
+                      style={styles.quantityButton}
+                      onPress={() => decreaseQuantity(item.id)}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </Pressable>
+
+                    <View style={styles.quantityBox}>
+                      <Text style={styles.quantityText}>{item.quantity}</Text>
+                    </View>
+
+                    <Pressable
+                      style={styles.quantityButton}
+                      onPress={() => increaseQuantity(item.id)}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </Pressable>
+                  </View>
+
+                  <Text style={styles.itemTotal}>
+                    {panierText.itemTotal[language]} : {itemTotal}
+                  </Text>
                 </View>
               );
             })
@@ -231,11 +224,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 25,
+    paddingTop: 70,
+    paddingBottom: 70,
   },
 
   card: {
     width: "92%",
-    maxWidth: 650,
     backgroundColor: "rgba(255,248,214,0.94)",
     borderWidth: 4,
     borderColor: "black",
@@ -245,15 +239,17 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 32,
+    fontSize: 38,
     fontWeight: "900",
-    marginBottom: 20,
+    marginBottom: 25,
+    textAlign: "center",
   },
 
   emptyText: {
     fontSize: 20,
     fontWeight: "900",
     marginVertical: 25,
+    textAlign: "center",
   },
 
   itemCard: {
@@ -263,53 +259,46 @@ const styles = StyleSheet.create({
     borderColor: "black",
     borderRadius: 25,
     padding: 15,
-    marginBottom: 15,
+    marginBottom: 18,
+    alignItems: "center",
   },
 
   itemName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "900",
     textAlign: "center",
-    marginBottom: 12,
-  },
-
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
+    marginBottom: 14,
   },
 
   itemBubble: {
-    width: 115,
-    height: 115,
-    borderRadius: 60,
+    width: 130,
+    height: 130,
+    borderRadius: 70,
     backgroundColor: "rgba(255,255,255,0.45)",
     borderWidth: 3,
     borderColor: "rgba(255,120,255,1)",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 14,
   },
 
   itemImage: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     resizeMode: "contain",
-  },
-
-  quantitySection: {
-    alignItems: "center",
   },
 
   quantityRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    justifyContent: "center",
+    marginBottom: 14,
   },
 
   quantityButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: "#b8f7ff",
     borderWidth: 3,
     borderColor: "black",
@@ -318,14 +307,14 @@ const styles = StyleSheet.create({
   },
 
   quantityButtonText: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "900",
   },
 
   quantityBox: {
-    width: 70,
-    height: 45,
-    marginHorizontal: 10,
+    width: 85,
+    height: 50,
+    marginHorizontal: 12,
     backgroundColor: "#ffdf6b",
     borderWidth: 3,
     borderColor: "black",
@@ -335,13 +324,14 @@ const styles = StyleSheet.create({
   },
 
   quantityText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "900",
   },
 
   itemTotal: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "900",
+    textAlign: "center",
   },
 
   totalBox: {
@@ -356,7 +346,7 @@ const styles = StyleSheet.create({
   },
 
   cartTotalText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "900",
     textAlign: "center",
   },
@@ -395,5 +385,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "900",
+    textAlign: "center",
   },
 });
