@@ -104,14 +104,14 @@ export async function initDatabase() {
   }
 
   const products = [
-    ["Finn's Sword", "Épée de Finn", 100, "finn_sword", "A heroic sword.", "Une épée héroïque."],
-    ["Ice Crown", "Couronne de glace", 350, "icecrown", "A magical ice crown.", "Une couronne de glace magique."],
-    ["Marceline Guitar", "Guitare de Marceline", 80, "marceline_guitar", "A vampire queen guitar.", "La guitare d'une reine vampire."],
-    ["Billy Sword", "Épée de Billy", 50, "billy_sword", "A legendary warrior sword.", "Une épée de guerrier légendaire."],
-    ["Jake's Legendary Sandwich", "Sandwich Légendaire de Jake", 30, "jakes_sandwich", "A perfect magical sandwich.", "Un sandwich magique parfait."],
-    ["Thumb Armor", "Armure pour le pouce", 40, "thumb_armor", "Tiny but powerful armor.", "Petite mais puissante armure."],
-    ["Enchiridion", "Enchiridion", 200, "enchiridion", "A book of heroic knowledge.", "Un livre de savoir héroïque."],
-    ["Demon Blood Sword", "Épée sanguinaire de démon", 500, "demon_blood_sword", "A powerful demonic sword.", "Une puissante épée démoniaque."]
+    ["Finn's Sword", "Épée de Finn", 100, "finn_sword", "A sword in poor shape.", "Une épée en mauvaise condition."],
+    ["Ice Crown", "Couronne de glace", 350, "icecrown", "I remember you Marceline", "Je me souviens de toi, Marceline."],
+    ["Marceline Guitar", "Guitare de Marceline", 80, "marceline_guitar", "The mosty savory licks in Ooo.", "Les licks les plus savoureux d'Ooo."],
+    ["Billy Sword", "Épée de Billy", 50, "billy_sword", "DO YOU KNOW WHOSE SWORD THIS IS?", "TU SAIS À QUI APPARTIENT CETTE ÉPÉE?"],
+    ["Jake's Legendary Sandwich", "Sandwich Légendaire de Jake", 30, "jakes_sandwich", "It's beautiful 🥲.", "Il est magnifique 🥲."],
+    ["Thumb Armor", "Armure pour le pouce", 40, "thumb_armor", "Tis' but a thimble!", "Ce n'est qu'un dé à coudre!"],
+    ["Enchiridion", "Enchiridion", 200, "enchiridion", "Meant only for heroes whose hearts are righteous", "Destiné uniquement aux héros dont les cœurs sont justes."],
+    ["Demon Blood Sword", "Épée sanguinaire de démon", 500, "demon_blood_sword", "The family sword, it's made out of demons blood", "L'épée de famille, elle est faite du sang des démons."]
   ];
 
   // Insérer les produits seulement s'il n'en existe pas encore
