@@ -217,9 +217,7 @@ export default function Index() {
       style={styles.background}
       imageStyle={styles.backgroundImage}
     >
-      <Pressable style={styles.musicButton} onPress={startMusic}>
-        <Text style={styles.musicButtonText}>♪</Text>
-      </Pressable>
+
 
       {showHiddenProductsPopup && (
         <View style={styles.hiddenProductsPopup}>
@@ -258,6 +256,10 @@ export default function Index() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <Pressable style={styles.musicButton} onPress={startMusic}>
+          <Text style={styles.musicButtonText}>♪</Text>
+        </Pressable>
+
         <ChooseGooseHeader
           quote={randomQuote[language]}
           language={language}
@@ -628,7 +630,7 @@ const styles = StyleSheet.create({
 });
 
 
-// sources : 
+// sources :
 // animated : https://reactnative.dev/docs/animated
 // https://www.reddit.com/r/reactnative/comments/1owhgzj/animating_app_ui_with_react_native/
 // audio : https://docs.expo.dev/versions/latest/sdk/audio/
