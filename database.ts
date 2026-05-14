@@ -119,14 +119,38 @@ export async function initDatabase() {
     "SELECT * FROM products WHERE name_en = 'Finn''s Sword'"
   );
 
-  if (!existingProducts) {
-    for (const product of products) {
-      await db.runAsync(
-        "INSERT INTO products (name_en, name_fr, price, image, description_en, description_fr) VALUES (?, ?, ?, ?, ?, ?)",
-        product
-      );
-    }
+if (!existingProducts) {
+  for (const product of products) {
+    await db.runAsync(
+      "INSERT INTO products (name_en, name_fr, price, image, description_en, description_fr) VALUES (?, ?, ?, ?, ?, ?)",
+      product
+    );
   }
+} else {
+  // Les produits existent déjà → on met à jour leurs données
+  for (const product of products) {
+    await db.runAsync(
+      `
+      UPDATE products
+      SET
+        name_fr = ?,
+        price = ?,
+        image = ?,
+        description_en = ?,
+        description_fr = ?
+      WHERE name_en = ?
+      `,
+      [
+        product[1], // name_fr
+        product[2], // price
+        product[3], // image
+        product[4], // description_en
+        product[5], // description_fr
+        product[0], // WHERE name_en
+      ]
+    );
+  }
+}
 }
 
 export default db;
