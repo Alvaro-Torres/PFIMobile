@@ -1,7 +1,8 @@
 import { useAudioPlayer } from "expo-audio";
-import { Link, router } from "expo-router";
-import { useEffect, useState } from "react";
+import { Link, router, useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import {
+  Animated,
   Image,
   ImageBackground,
   Pressable,
@@ -44,37 +45,23 @@ const images: Record<string, any> = {
 export default function Index() {
   const [language, setLanguage] = useState<Language>("en");
   const [products, setProducts] = useState<Product[]>([]);
+  const [showHiddenProductsPopup, setShowHiddenProductsPopup] = useState(false);
+  const [hiddenProducts, setHiddenProducts] = useState<Product[]>([]);
+
+  const itemAnimations = useRef<Animated.Value[]>([]);
 
   const { loggedUser, setLoggedUser } = useCart();
-
   const musicPlayer = useAudioPlayer(music);
 
   const randomIndex = Math.floor(Math.random() * gooseQuotes.length);
   const randomQuote = gooseQuotes[randomIndex];
 
-  const [showHidden, setShowHidden] = useState(false);
-  const [hiddenProducts, setHiddenProducts] = useState<Product[]>([]);
-
-
-  useEffect(() => {
-    loadProducts();
-    loadHiddenProducts();
-  }, []);
-
-
-  async function loadHiddenProducts() {
-    const result = await db.getAllAsync<Product>(
-      "SELECT * FROM products WHERE visible = 0"
-    );
-    setHiddenProducts(result);
-  }
-
-  async function restoreProduct(id: number) {
-    await db.runAsync("UPDATE products SET visible = 1 WHERE id = ?", [id]);
-    loadProducts();
-    loadHiddenProducts();
-  }
-
+  useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+      loadHiddenProducts();
+    }, [])
+  );
 
   async function loadProducts() {
     const result = await db.getAllAsync<Product>(
@@ -82,6 +69,36 @@ export default function Index() {
     );
 
     setProducts(result);
+
+    itemAnimations.current = result.map(() => new Animated.Value(0));
+
+    setTimeout(() => {
+      Animated.stagger(
+        130,
+        itemAnimations.current.map((animation) =>
+          Animated.spring(animation, {
+            toValue: 1,
+            friction: 3,
+            tension: 90,
+            useNativeDriver: true,
+          })
+        )
+      ).start();
+    }, 120);
+  }
+
+  async function loadHiddenProducts() {
+    const result = await db.getAllAsync<Product>(
+      "SELECT * FROM products WHERE visible = 0"
+    );
+
+    setHiddenProducts(result);
+  }
+
+  async function restoreProduct(id: number) {
+    await db.runAsync("UPDATE products SET visible = 1 WHERE id = ?", [id]);
+    loadProducts();
+    loadHiddenProducts();
   }
 
   async function hideProduct(id: number) {
@@ -114,16 +131,43 @@ export default function Index() {
     return language === "en" ? "The Deer" : "Le Cerf";
   }
 
-
-
   function showItems() {
     const itemViews = [];
 
     for (let i = 0; i < products.length; i++) {
       const item = products[i];
+      const animation = itemAnimations.current[i] ?? new Animated.Value(1);
 
       itemViews.push(
-        <View key={item.id} style={styles.itemBox}>
+        <Animated.View
+          key={item.id}
+          style={[
+            styles.itemBox,
+            {
+              opacity: animation,
+              transform: [
+                {
+                  scale: animation.interpolate({
+                    inputRange: [0, 0.6, 1],
+                    outputRange: [0.2, 1.18, 1],
+                  }),
+                },
+                {
+                  translateY: animation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [35, 0],
+                  }),
+                },
+                {
+                  rotate: animation.interpolate({
+                    inputRange: [0, 0.35, 0.7, 1],
+                    outputRange: ["-10deg", "8deg", "-4deg", "0deg"],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
           <Text style={styles.itemName}>
             {language === "en" ? item.name_en : item.name_fr}
           </Text>
@@ -151,6 +195,7 @@ export default function Index() {
 
             <Text style={styles.itemPrice}>{item.price}</Text>
           </View>
+
           {loggedUser?.role === "admin" && (
             <Pressable
               style={styles.hideButton}
@@ -159,7 +204,7 @@ export default function Index() {
               <Text style={styles.hideButtonText}>−</Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
       );
     }
 
@@ -176,16 +221,15 @@ export default function Index() {
         <Text style={styles.musicButtonText}>♪</Text>
       </Pressable>
 
-      {/* Modal showing hidden products */}
-      {showHidden && (
-        <View style={styles.modal}>
-          <Text style={styles.modalTitle}>
+      {showHiddenProductsPopup && (
+        <View style={styles.hiddenProductsPopup}>
+          <Text style={styles.hiddenProductsPopupTitle}>
             {language === "en" ? "Hidden Products" : "Produits cachés"}
           </Text>
 
           {hiddenProducts.map((product) => (
-            <View key={product.id} style={styles.modalRow}>
-              <Text style={styles.modalItemName}>
+            <View key={product.id} style={styles.hiddenProductRow}>
+              <Text style={styles.hiddenProductName}>
                 {language === "en" ? product.name_en : product.name_fr}
               </Text>
 
@@ -199,10 +243,10 @@ export default function Index() {
           ))}
 
           <Pressable
-            style={styles.closeButton}
-            onPress={() => setShowHidden(false)}
+            style={styles.closePopupButton}
+            onPress={() => setShowHiddenProductsPopup(false)}
           >
-            <Text style={styles.closeButtonText}>
+            <Text style={styles.closePopupButtonText}>
               {language === "en" ? "Close" : "Fermer"}
             </Text>
           </Pressable>
@@ -222,10 +266,10 @@ export default function Index() {
 
         {loggedUser?.role === "admin" && (
           <Pressable
-            style={styles.addButton}
-            onPress={() => setShowHidden(true)}
+            style={styles.showHiddenProductsButton}
+            onPress={() => setShowHiddenProductsPopup(true)}
           >
-            <Text style={styles.addButtonText}>+</Text>
+            <Text style={styles.showHiddenProductsButtonText}>+</Text>
           </Pressable>
         )}
 
@@ -245,7 +289,6 @@ export default function Index() {
           <View style={styles.profileCard}>
             <Text style={styles.profileName}>{getUsername()}</Text>
 
-            {/* Test  */}
             <Text>{loggedUser?.role}</Text>
 
             <View style={styles.soldeRow}>
@@ -277,9 +320,10 @@ export default function Index() {
             </Pressable>
           </Link>
         )}
+
         <Pressable
           style={styles.connexionButton}
-          onPress={() => router.push("/entrepots")}
+          onPress={() => router.push("/entrepots" as any)}
         >
           <Text style={styles.connexionButtonText}>
             {language === "en" ? "Warehouses" : "Entrepôts"}
@@ -480,6 +524,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "black",
   },
+
   hideButton: {
     marginTop: 6,
     backgroundColor: "#ffb3b3",
@@ -492,10 +537,10 @@ const styles = StyleSheet.create({
 
   hideButtonText: {
     fontSize: 20,
-    fontWeight: "900"
+    fontWeight: "900",
   },
 
-  addButton: {
+  showHiddenProductsButton: {
     alignSelf: "flex-start",
     marginLeft: 15,
     marginTop: 10,
@@ -506,8 +551,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  addButtonText: { fontSize: 20, fontWeight: "900" },
-  modal: {
+
+  showHiddenProductsButtonText: {
+    fontSize: 20,
+    fontWeight: "900",
+  },
+
+  hiddenProductsPopup: {
     position: "absolute",
     top: "20%",
     left: "5%",
@@ -520,8 +570,14 @@ const styles = StyleSheet.create({
     zIndex: 20,
     alignItems: "center",
   },
-  modalTitle: { fontSize: 22, fontWeight: "900", marginBottom: 15 },
-  modalRow: {
+
+  hiddenProductsPopupTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    marginBottom: 15,
+  },
+
+  hiddenProductRow: {
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -533,7 +589,14 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
-  modalItemName: { fontSize: 15, fontWeight: "900", flex: 1, marginRight: 10 },
+
+  hiddenProductName: {
+    fontSize: 15,
+    fontWeight: "900",
+    flex: 1,
+    marginRight: 10,
+  },
+
   restoreButton: {
     backgroundColor: "#b8f7ff",
     borderWidth: 2,
@@ -542,8 +605,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  restoreButtonText: { fontSize: 18, fontWeight: "900" },
-  closeButton: {
+
+  restoreButtonText: {
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  closePopupButton: {
     marginTop: 10,
     backgroundColor: "white",
     borderWidth: 3,
@@ -552,5 +620,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 18,
   },
-  closeButtonText: { fontSize: 15, fontWeight: "900" },
+
+  closePopupButtonText: {
+    fontSize: 15,
+    fontWeight: "900",
+  },
 });
+
+
+// sources : 
+// animated : https://reactnative.dev/docs/animated
+// https://www.reddit.com/r/reactnative/comments/1owhgzj/animating_app_ui_with_react_native/
+// audio : https://docs.expo.dev/versions/latest/sdk/audio/
